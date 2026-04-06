@@ -4,8 +4,8 @@ from datetime import datetime, date, timedelta
 from functools import wraps
 
 app = Flask(__name__)
-app.secret_key = 'yuna_secret_2024_crm'
-DB = 'yuna.db'
+app.secret_key = os.environ.get('SECRET_KEY', 'yuna_secret_2024_crm')
+DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'yuna.db')
 
 # ─────────────────────────────────────────
 # DB SETUP
@@ -110,6 +110,9 @@ def init_db():
 
     conn.commit()
     conn.close()
+
+# Init DB on startup (works with Gunicorn)
+init_db()
 
 # ─────────────────────────────────────────
 # AUTH
@@ -515,10 +518,6 @@ def client_plan_type(cid):
     conn.close()
     return jsonify({'plan_type': c['plan_type'] if c else ''})
 
-if __name__ == '__main__':
-    init_db()
-    app.run(debug=True, port=5001)
-
 @app.context_processor
 def inject_globals():
     now = datetime.now()
@@ -529,3 +528,6 @@ def inject_globals():
         date=date,
         enumerate=enumerate
     )
+
+if __name__ == '__main__':
+    app.run(debug=True, port=5001)
