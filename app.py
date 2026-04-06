@@ -3,9 +3,27 @@ import sqlite3, hashlib, os, uuid
 from datetime import datetime, date, timedelta
 from functools import wraps
 
+from werkzeug.utils import secure_filename
+
 app = Flask(__name__)
 app.secret_key = os.environ.get('SECRET_KEY', 'yuna_secret_2024_crm')
 DB = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'yuna.db')
+UPLOAD_FOLDER = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'static', 'uploads')
+os.makedirs(UPLOAD_FOLDER, exist_ok=True)
+ALLOWED_EXT = {'png','jpg','jpeg','gif','webp'}
+
+def allowed_file(filename):
+    return '.' in filename and filename.rsplit('.',1)[1].lower() in ALLOWED_EXT
+
+def save_upload(file_field):
+    """Save uploaded file and return relative path or None."""
+    f = request.files.get(file_field)
+    if f and f.filename and allowed_file(f.filename):
+        ext = f.filename.rsplit('.',1)[1].lower()
+        fname = f'{uuid.uuid4().hex}.{ext}'
+        f.save(os.path.join(UPLOAD_FOLDER, fname))
+        return f'uploads/{fname}'
+    return None
 
 # ─────────────────────────────────────────
 # DB SETUP
@@ -80,8 +98,11 @@ def init_db():
         followers INTEGER,
         profile_visits INTEGER,
         top_post1 TEXT,
+        top_post1_img TEXT,
         top_post2 TEXT,
+        top_post2_img TEXT,
         top_post3 TEXT,
+        top_post3_img TEXT,
         -- trafego
         new_whatsapp_clients INTEGER,
         reach INTEGER,
@@ -98,6 +119,13 @@ def init_db():
         created_at TEXT,
         FOREIGN KEY (client_id) REFERENCES clients(id)
     )''')
+
+    # Migrate: add image columns if not exist
+    for col in ['top_post1_img','top_post2_img','top_post3_img']:
+        try:
+            c.execute(f'ALTER TABLE reports ADD COLUMN {col} TEXT')
+        except:
+            pass
 
     # Default admin user
     admin_id = str(uuid.uuid4())
@@ -448,22 +476,25 @@ def new_report():
     if request.method == 'POST':
         rid = str(uuid.uuid4())
         pt = request.form.get('plan_type','social')
+        img1 = save_upload('img_post1')
+        img2 = save_upload('img_post2')
+        img3 = save_upload('img_post3')
         conn.execute("""INSERT INTO reports
             (id,client_id,month,year,report_type,
-             followers,profile_visits,top_post1,top_post2,top_post3,
+             followers,profile_visits,top_post1,top_post1_img,top_post2,top_post2_img,top_post3,top_post3_img,
              new_whatsapp_clients,reach,cost_per_result,invested_value,ctr,
              goal_followers,goal_visits,goal_new_clients,goal_reach,goal_ctr,
              notes,created_at)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""", (
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""", (
             rid,
             request.form['client_id'],
             int(request.form['month']), int(request.form['year']),
             pt,
             int(request.form.get('followers',0) or 0),
             int(request.form.get('profile_visits',0) or 0),
-            request.form.get('top_post1',''),
-            request.form.get('top_post2',''),
-            request.form.get('top_post3',''),
+            request.form.get('top_post1',''), img1,
+            request.form.get('top_post2',''), img2,
+            request.form.get('top_post3',''), img3,
             int(request.form.get('new_whatsapp_clients',0) or 0),
             int(request.form.get('reach',0) or 0),
             float(request.form.get('cost_per_result',0) or 0),
