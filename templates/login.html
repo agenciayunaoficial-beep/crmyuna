@@ -1,0 +1,52 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>Login — Yuna CRM</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:ital,wght@0,700;1,600&display=swap" rel="stylesheet"/>
+<style>
+*{margin:0;padding:0;box-sizing:border-box}
+body{font-family:"Plus Jakarta Sans",sans-serif;background:linear-gradient(135deg,#0D1A45 0%,#1A2B6B 60%,#1e3a9f 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
+.login-box{background:#fff;border-radius:20px;padding:40px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
+.login-logo{text-align:center;margin-bottom:28px}
+.logo-icon{width:60px;height:60px;background:#FFC107;border-radius:14px;display:inline-flex;align-items:center;justify-content:center;font-family:"Fraunces",serif;font-size:2rem;font-weight:900;color:#0D1A45;margin-bottom:10px}
+.login-title{font-family:"Fraunces",serif;font-size:1.6rem;font-weight:700;color:#0D1A45;margin-bottom:4px}
+.login-sub{font-size:.82rem;color:#64748B}
+.form-group{margin-bottom:16px}
+label{display:block;font-size:.75rem;font-weight:700;color:#1A2B6B;letter-spacing:.3px;text-transform:uppercase;margin-bottom:6px}
+input{width:100%;padding:12px 14px;border:1.5px solid #E2E8F0;border-radius:10px;font-family:inherit;font-size:.9rem;color:#0F172A;outline:none;transition:border-color .2s}
+input:focus{border-color:#1A2B6B}
+.btn-login{width:100%;padding:13px;background:#FFC107;color:#0D1A45;border:none;border-radius:10px;font-family:inherit;font-weight:700;font-size:.92rem;cursor:pointer;transition:all .25s;margin-top:4px}
+.btn-login:hover{background:#E6A800;transform:translateY(-1px)}
+.alert{padding:10px 14px;background:#FEE2E2;color:#DC2626;border-radius:10px;font-size:.83rem;font-weight:500;margin-bottom:14px;border:1px solid #FECACA}
+.deco{position:fixed;inset:0;pointer-events:none;overflow:hidden}
+.deco-blob{position:absolute;border-radius:50%;background:rgba(255,193,7,.08);animation:bf 8s ease-in-out infinite}
+.db1{width:500px;height:500px;top:-200px;right:-100px}
+.db2{width:300px;height:300px;bottom:-100px;left:-80px;animation-delay:3s}
+@keyframes bf{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
+</style>
+</head>
+<body>
+<div class="deco"><div class="deco-blob db1"></div><div class="deco-blob db2"></div></div>
+<div class="login-box">
+  <div class="login-logo">
+    <div class="logo-icon">Y</div>
+    <div class="login-title">YUNA CRM</div>
+    <div class="login-sub">Painel interno de gestão</div>
+  </div>
+  {% if error %}<div class="alert">⚠️ {{ error }}</div>{% endif %}
+  <form method="POST">
+    <div class="form-group">
+      <label>Usuário</label>
+      <input type="text" name="username" placeholder="Seu usuário" required autofocus/>
+    </div>
+    <div class="form-group">
+      <label>Senha</label>
+      <input type="password" name="password" placeholder="••••••••" required/>
+    </div>
+    <button type="submit" class="btn-login">Entrar no sistema →</button>
+  </form>
+</div>
+</body>
+</html>

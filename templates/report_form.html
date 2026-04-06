@@ -1,0 +1,190 @@
+{% extends 'base.html' %}
+{% block title %}Novo Relatório — Yuna CRM{% endblock %}
+{% block topbar_title %}Novo Relatório{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><h1>Novo Relatório</h1><p>Cadastre as métricas do mês do cliente</p></div>
+  <a href="{{ url_for('reports') }}" class="btn btn-ghost">← Voltar</a>
+</div>
+
+<form method="POST">
+  <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;align-items:start">
+    <div>
+      <!-- BASIC INFO -->
+      <div class="card" style="margin-bottom:16px">
+        <div style="font-size:.92rem;font-weight:700;color:var(--n);margin-bottom:18px">📋 Informações Gerais</div>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Cliente *</label>
+            <select name="client_id" id="client_sel" required onchange="fetchPlanType(this.value)">
+              <option value="">Selecionar cliente...</option>
+              {% for c in clients %}
+              <option value="{{ c.id }}" data-type="{{ c.plan_type }}" {{ 'selected' if request.args.get('client')==c.id else '' }}>{{ c.name }} ({{ c.plan_type }})</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Tipo de Relatório *</label>
+            <select name="plan_type" id="plan_type_sel">
+              <option value="social">📱 Social Media</option>
+              <option value="trafego">📣 Tráfego Pago</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Mês *</label>
+            <select name="month">
+              {% for i, m in enumerate(['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']) %}
+              <option value="{{ i+1 }}" {{ 'selected' if (i+1)==now_month else '' }}>{{ m }}</option>
+              {% endfor %}
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Ano *</label>
+            <input type="number" name="year" value="{{ now_year }}" min="2023" max="2030"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- SOCIAL MEDIA METRICS -->
+      <div id="section-social" class="card" style="margin-bottom:16px">
+        <div style="font-size:.92rem;font-weight:700;color:var(--n);margin-bottom:6px">📱 Métricas — Social Media</div>
+        <div style="font-size:.78rem;color:var(--gr);margin-bottom:18px">Preencha os dados do Instagram do cliente</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Total de Seguidores</label>
+            <input type="number" name="followers" placeholder="0" min="0"/>
+            <span class="form-hint">Número atual de seguidores na conta</span>
+          </div>
+          <div class="form-group">
+            <label>Visitas no Perfil</label>
+            <input type="number" name="profile_visits" placeholder="0" min="0"/>
+            <span class="form-hint">Visitas únicas no perfil do Instagram</span>
+          </div>
+          <div class="form-group full">
+            <label>🥇 Post com Melhor Performance</label>
+            <input type="text" name="top_post1" placeholder="Ex: Reels do produto X — 5.200 visualizações"/>
+          </div>
+          <div class="form-group full">
+            <label>🥈 2º Melhor Post</label>
+            <input type="text" name="top_post2" placeholder="Ex: Story de promoção — 1.800 alcance"/>
+          </div>
+          <div class="form-group full">
+            <label>🥉 3º Melhor Post</label>
+            <input type="text" name="top_post3" placeholder="Ex: Feed carrossel — 980 curtidas"/>
+          </div>
+        </div>
+      </div>
+
+      <!-- TRAFEGO METRICS -->
+      <div id="section-trafego" class="card" style="margin-bottom:16px;display:none">
+        <div style="font-size:.92rem;font-weight:700;color:var(--n);margin-bottom:6px">📣 Métricas — Tráfego Pago</div>
+        <div style="font-size:.78rem;color:var(--gr);margin-bottom:18px">Dados do gerenciador de anúncios</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Novos Clientes no WhatsApp</label>
+            <input type="number" name="new_whatsapp_clients" placeholder="0" min="0"/>
+          </div>
+          <div class="form-group">
+            <label>Alcance</label>
+            <input type="number" name="reach" placeholder="0" min="0"/>
+          </div>
+          <div class="form-group">
+            <label>Custo por Resultado (R$)</label>
+            <input type="number" name="cost_per_result" placeholder="0.00" step="0.01" min="0"/>
+          </div>
+          <div class="form-group">
+            <label>Valor Investido (R$)</label>
+            <input type="number" name="invested_value" placeholder="0.00" step="0.01" min="0"/>
+          </div>
+          <div class="form-group">
+            <label>CTR (%)</label>
+            <input type="number" name="ctr" placeholder="0.00" step="0.01" min="0" max="100"/>
+            <span class="form-hint">Taxa de clique nos anúncios</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- NOTES -->
+      <div class="card">
+        <div style="font-size:.92rem;font-weight:700;color:var(--n);margin-bottom:14px">📝 Observações</div>
+        <textarea name="notes" placeholder="Conquistas do mês, pontos de melhoria, próximos passos..." style="min-height:120px"></textarea>
+      </div>
+    </div>
+
+    <!-- METAS -->
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div style="font-size:.92rem;font-weight:700;color:var(--n);margin-bottom:6px">🎯 Metas do Mês</div>
+        <div style="font-size:.75rem;color:var(--gr);margin-bottom:16px">Defina as metas para comparar com os resultados</div>
+
+        <div id="metas-social">
+          <div class="form-group" style="margin-bottom:12px">
+            <label>Meta de Seguidores</label>
+            <input type="number" name="goal_followers" placeholder="0"/>
+          </div>
+          <div class="form-group">
+            <label>Meta de Visitas no Perfil</label>
+            <input type="number" name="goal_visits" placeholder="0"/>
+          </div>
+        </div>
+
+        <div id="metas-trafego" style="display:none">
+          <div class="form-group" style="margin-bottom:12px">
+            <label>Meta de Novos Clientes</label>
+            <input type="number" name="goal_new_clients" placeholder="0"/>
+          </div>
+          <div class="form-group" style="margin-bottom:12px">
+            <label>Meta de Alcance</label>
+            <input type="number" name="goal_reach" placeholder="0"/>
+          </div>
+          <div class="form-group">
+            <label>Meta de CTR (%)</label>
+            <input type="number" name="goal_ctr" placeholder="0.00" step="0.01"/>
+          </div>
+        </div>
+      </div>
+
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:13px">
+        📊 Salvar Relatório
+      </button>
+    </div>
+  </div>
+</form>
+
+<script>
+const now = new Date();
+// Auto-select client from URL param
+const urlClient = new URLSearchParams(window.location.search).get('client');
+if(urlClient){
+  const sel = document.getElementById('client_sel');
+  sel.value = urlClient;
+  fetchPlanType(urlClient);
+}
+
+function fetchPlanType(cid){
+  const sel = document.getElementById('client_sel');
+  const opt = sel.querySelector(`option[value="${cid}"]`);
+  if(opt){
+    const type = opt.dataset.type;
+    setType(type === 'trafego' ? 'trafego' : 'social');
+  }
+}
+
+function setType(type){
+  document.getElementById('plan_type_sel').value = type;
+  document.getElementById('section-social').style.display = type==='social' ? 'block' : 'none';
+  document.getElementById('section-trafego').style.display = type==='trafego' ? 'block' : 'none';
+  document.getElementById('metas-social').style.display = type==='social' ? 'block' : 'none';
+  document.getElementById('metas-trafego').style.display = type==='trafego' ? 'block' : 'none';
+}
+
+document.getElementById('plan_type_sel').addEventListener('change', function(){setType(this.value)});
+</script>
+{% endblock %}
+{% block scripts %}
+<script>
+// Pass python vars
+const now_month = {{ now_month }};
+const now_year = {{ now_year }};
+</script>
+{% endblock %}

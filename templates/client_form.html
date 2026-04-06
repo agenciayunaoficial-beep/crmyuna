@@ -1,0 +1,119 @@
+{% extends 'base.html' %}
+{% block title %}{{ 'Editar' if client else 'Novo' }} Cliente — Yuna CRM{% endblock %}
+{% block topbar_title %}{{ 'Editar Cliente' if client else 'Novo Cliente' }}{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>{{ 'Editar Cliente' if client else 'Novo Cliente' }}</h1>
+    <p>{{ 'Atualize as informações do cliente' if client else 'Preencha os dados do novo cliente' }}</p>
+  </div>
+  <a href="{{ url_for('clients') }}" class="btn btn-ghost">← Voltar</a>
+</div>
+
+<form method="POST">
+  <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;align-items:start">
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div style="font-size:.92rem;font-weight:700;color:var(--n);margin-bottom:18px">📋 Dados do Cliente</div>
+        <div class="form-grid">
+          <div class="form-group full">
+            <label>Nome completo *</label>
+            <input type="text" name="name" value="{{ client.name if client else '' }}" required placeholder="Nome do cliente ou empresa"/>
+          </div>
+          <div class="form-group">
+            <label>WhatsApp</label>
+            <input type="text" name="whatsapp" value="{{ client.whatsapp if client else '' }}" placeholder="(82) 99999-9999"/>
+          </div>
+          <div class="form-group">
+            <label>Instagram</label>
+            <input type="text" name="instagram" value="{{ client.instagram if client else '' }}" placeholder="@perfil"/>
+          </div>
+          <div class="form-group full">
+            <label>E-mail</label>
+            <input type="email" name="email" value="{{ client.email if client else '' }}" placeholder="email@cliente.com"/>
+          </div>
+          <div class="form-group full">
+            <label>Observações</label>
+            <textarea name="notes" placeholder="Anotações sobre o cliente...">{{ client.notes if client else '' }}</textarea>
+          </div>
+        </div>
+      </div>
+
+      <div class="card">
+        <div style="font-size:.92rem;font-weight:700;color:var(--n);margin-bottom:18px">💼 Plano Contratado</div>
+        <div class="form-grid">
+          <div class="form-group">
+            <label>Tipo de Serviço</label>
+            <select name="plan_type" id="plan_type">
+              <option value="social" {{ 'selected' if client and client.plan_type=='social' else '' }}>Social Media</option>
+              <option value="trafego" {{ 'selected' if client and client.plan_type=='trafego' else '' }}>Tráfego Pago</option>
+              <option value="site" {{ 'selected' if client and client.plan_type=='site' else '' }}>Criação de Site</option>
+              <option value="disparo" {{ 'selected' if client and client.plan_type=='disparo' else '' }}>Disparo + Google</option>
+              <option value="combo" {{ 'selected' if client and client.plan_type=='combo' else '' }}>Combo</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Plano</label>
+            <select name="plan">
+              <option value="Light" {{ 'selected' if client and client.plan=='Light' else '' }}>Light (1º mês)</option>
+              <option value="Semestral" {{ 'selected' if client and client.plan=='Semestral' else '' }}>Semestral (6 meses)</option>
+              <option value="Anual" {{ 'selected' if client and client.plan=='Anual' else '' }}>Anual (12 meses)</option>
+              <option value="Avulso" {{ 'selected' if client and client.plan=='Avulso' else '' }}>Avulso</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Valor Mensal (R$)</label>
+            <input type="number" name="value" value="{{ client.value if client else '' }}" step="0.01" placeholder="0,00" required/>
+          </div>
+          <div class="form-group">
+            <label>Dia de Vencimento</label>
+            <input type="number" name="payment_day" min="1" max="31" value="{{ client.payment_day if client else '10' }}"/>
+          </div>
+          <div class="form-group">
+            <label>Forma de Pagamento</label>
+            <select name="payment_method">
+              <option value="pix" {{ 'selected' if client and client.payment_method=='pix' else '' }}>PIX</option>
+              <option value="credito" {{ 'selected' if client and client.payment_method=='credito' else '' }}>Cartão de Crédito</option>
+            </select>
+          </div>
+          <div class="form-group">
+            <label>Data de Início</label>
+            <input type="date" name="start_date" value="{{ client.start_date if client else '' }}"/>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <div>
+      <div class="card" style="margin-bottom:16px">
+        <div style="font-size:.92rem;font-weight:700;color:var(--n);margin-bottom:18px">📌 Status</div>
+        <div class="form-group">
+          <label>Status do Cliente</label>
+          <select name="status">
+            <option value="active" {{ 'selected' if not client or client.status=='active' else '' }}>✅ Ativo</option>
+            <option value="paused" {{ 'selected' if client and client.status=='paused' else '' }}>⏸️ Pausado</option>
+            <option value="cancelled" {{ 'selected' if client and client.status=='cancelled' else '' }}>❌ Cancelado</option>
+          </select>
+        </div>
+      </div>
+
+      <div class="card" style="background:var(--yl);border-color:rgba(255,193,7,.3)">
+        <div style="font-size:.82rem;color:var(--nd);line-height:1.7">
+          💡 <strong>Dica:</strong> Ao cadastrar um novo cliente, a primeira cobrança é gerada automaticamente no dia de vencimento escolhido.
+        </div>
+      </div>
+
+      <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px">
+        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:13px">
+          {{ '💾 Salvar Alterações' if client else '✅ Cadastrar Cliente' }}
+        </button>
+        {% if client %}
+        <form method="POST" action="{{ url_for('delete_client', cid=client.id) }}" onsubmit="return confirm('Tem certeza? Todos os dados do cliente serão apagados.')">
+          <button type="submit" class="btn btn-red" style="width:100%;justify-content:center">🗑️ Excluir Cliente</button>
+        </form>
+        {% endif %}
+      </div>
+    </div>
+  </div>
+</form>
+{% endblock %}

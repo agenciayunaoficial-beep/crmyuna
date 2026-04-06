@@ -1,0 +1,154 @@
+{% extends 'base.html' %}
+{% block title %}Dashboard — Yuna CRM{% endblock %}
+{% block topbar_title %}Dashboard{% endblock %}
+{% block extra_head %}
+<style>
+.grid-2{display:grid;grid-template-columns:2fr 1fr;gap:20px;margin-bottom:20px}
+.grid-2-eq{display:grid;grid-template-columns:1fr 1fr;gap:20px}
+.section-title{font-size:.92rem;font-weight:700;color:var(--n);margin-bottom:16px;display:flex;align-items:center;gap:8px}
+.rec-item{display:flex;align-items:flex-start;gap:12px;padding:10px 0;border-bottom:1px solid var(--bd)}
+.rec-item:last-child{border-bottom:none}
+.rec-date{background:var(--y);color:var(--nd);border-radius:8px;padding:6px 10px;text-align:center;min-width:44px;flex-shrink:0}
+.rec-date-d{font-size:1.1rem;font-weight:800;line-height:1;font-family:"Fraunces",serif}
+.rec-date-m{font-size:.6rem;font-weight:700;text-transform:uppercase}
+.rec-info-name{font-weight:700;font-size:.88rem;color:var(--tx)}
+.rec-info-time{font-size:.75rem;color:var(--gr);margin-top:2px}
+.cli-row{display:flex;align-items:center;justify-content:space-between;padding:8px 0;border-bottom:1px solid var(--bd)}
+.cli-row:last-child{border-bottom:none}
+.cli-name{font-weight:600;font-size:.88rem}
+.cli-plan{font-size:.75rem;color:var(--gr)}
+@media(max-width:900px){.grid-2,.grid-2-eq{grid-template-columns:1fr}.stats-grid{grid-template-columns:1fr 1fr}}
+</style>
+{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div>
+    <h1>Olá, {{ session.name or 'Yuna' }}! 👋</h1>
+    <p>Visão geral do seu negócio hoje</p>
+  </div>
+  <a href="{{ url_for('new_client') }}" class="btn btn-primary">+ Novo Cliente</a>
+</div>
+
+<!-- STATS -->
+<div class="stats-grid">
+  <div class="stat-card green">
+    <div class="stat-label">Clientes Ativos</div>
+    <div class="stat-value">{{ total_clients }}</div>
+    <div class="stat-sub">contratos vigentes</div>
+    <div class="stat-icon">👥</div>
+  </div>
+  <div class="stat-card yellow">
+    <div class="stat-label">Receita Mensal</div>
+    <div class="stat-value">R$ {{ "%.0f"|format(monthly_revenue) }}</div>
+    <div class="stat-sub">recorrência total</div>
+    <div class="stat-icon">💰</div>
+  </div>
+  <div class="stat-card blue">
+    <div class="stat-label">Recebido no Mês</div>
+    <div class="stat-value">R$ {{ "%.0f"|format(paid_month) }}</div>
+    <div class="stat-sub">pagamentos confirmados</div>
+    <div class="stat-icon">✅</div>
+  </div>
+  <div class="stat-card {% if overdue > 0 %}red{% else %}green{% endif %}">
+    <div class="stat-label">Cobranças Pendentes</div>
+    <div class="stat-value">{{ pending }}</div>
+    <div class="stat-sub">{% if overdue > 0 %}⚠️ {{ overdue }} em atraso{% else %}tudo em dia{% endif %}</div>
+    <div class="stat-icon">📋</div>
+  </div>
+</div>
+
+<!-- CHARTS + RECORDINGS -->
+<div class="grid-2">
+  <div class="card">
+    <div class="section-title">📈 Receita dos últimos 6 meses</div>
+    <canvas id="revenueChart" height="200"></canvas>
+  </div>
+  <div class="card">
+    <div class="section-title">📅 Próximas gravações</div>
+    {% if recordings %}
+      {% for r in recordings %}
+      <div class="rec-item">
+        <div class="rec-date">
+          <div class="rec-date-d">{{ r.date[8:10] }}</div>
+          <div class="rec-date-m">{{ ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'][r.date[5:7]|int - 1] }}</div>
+        </div>
+        <div>
+          <div class="rec-info-name">{{ r.client_name }}</div>
+          <div class="rec-info-time">⏰ {{ r.time or 'Horário a definir' }}{% if r.address %} · 📍 {{ r.address[:30] }}{% endif %}</div>
+        </div>
+      </div>
+      {% endfor %}
+    {% else %}
+      <div class="empty"><div class="empty-icon">📅</div><p>Nenhuma gravação agendada</p></div>
+    {% endif %}
+    <a href="{{ url_for('agenda') }}" class="btn btn-ghost btn-sm" style="margin-top:14px;width:100%;justify-content:center">Ver agenda completa</a>
+  </div>
+</div>
+
+<!-- CLIENTS + PLANS -->
+<div class="grid-2-eq">
+  <div class="card">
+    <div class="section-title">👥 Clientes recentes</div>
+    {% for c in recent_clients %}
+    <div class="cli-row">
+      <div>
+        <div class="cli-name">{{ c.name }}</div>
+        <div class="cli-plan">{{ c.plan }} · {{ c.plan_type }}</div>
+      </div>
+      <div style="display:flex;align-items:center;gap:8px">
+        <span class="badge {% if c.status=='active' %}badge-green{% elif c.status=='cancelled' %}badge-red{% else %}badge-yellow{% endif %}">
+          {{ 'Ativo' if c.status=='active' else ('Cancelado' if c.status=='cancelled' else 'Pausado') }}
+        </span>
+        <a href="{{ url_for('client_detail', cid=c.id) }}" class="btn btn-ghost btn-sm">Ver</a>
+      </div>
+    </div>
+    {% endfor %}
+    <a href="{{ url_for('clients') }}" class="btn btn-ghost btn-sm" style="margin-top:14px;width:100%;justify-content:center">Ver todos os clientes</a>
+  </div>
+
+  <div class="card">
+    <div class="section-title">🍩 Distribuição de planos</div>
+    <canvas id="plansChart" height="220"></canvas>
+  </div>
+</div>
+
+<script>
+const months = {{ months_data | tojson }};
+new Chart(document.getElementById('revenueChart'), {
+  type:'bar',
+  data:{
+    labels: months.map(m=>m.month),
+    datasets:[{
+      label:'Receita (R$)',
+      data: months.map(m=>m.value),
+      backgroundColor:'rgba(255,193,7,.85)',
+      borderRadius:8,borderSkipped:false,
+    }]
+  },
+  options:{
+    responsive:true,plugins:{legend:{display:false}},
+    scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.05)'},ticks:{callback:v=>'R$'+v}},x:{grid:{display:false}}}
+  }
+});
+
+// Plans donut - fetch from clients
+fetch('/clients').then(()=>{});
+const plansData = {
+  labels:['Social Media','Tráfego Pago','Sites','Outros'],
+  datasets:[{
+    data:[
+      {{ total_clients }},
+      {{ cancelled }},
+      0,0
+    ],
+    backgroundColor:['#FFC107','#1A2B6B','#22C55E','#64748B'],
+    borderWidth:0,hoverOffset:6
+  }]
+};
+new Chart(document.getElementById('plansChart'),{
+  type:'doughnut',
+  data:plansData,
+  options:{responsive:true,plugins:{legend:{position:'bottom',labels:{font:{size:11},padding:12}}},cutout:'68%'}
+});
+</script>
+{% endblock %}

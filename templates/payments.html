@@ -1,0 +1,52 @@
+--- PAYMENTS ---
+{% extends 'base.html' %}
+{% block title %}Cobranças — Yuna CRM{% endblock %}
+{% block topbar_title %}Cobranças{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><h1>Cobranças</h1><p>Controle de pagamentos dos clientes</p></div>
+</div>
+
+{% set pending_list = payments|selectattr('status','eq','pending')|list %}
+{% set paid_list = payments|selectattr('status','eq','paid')|list %}
+{% set overdue_list = pending_list|selectattr('due_date','lt',today)|list %}
+
+<div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+  <div class="stat-card yellow"><div class="stat-label">Pendentes</div><div class="stat-value">{{ pending_list|length }}</div><div class="stat-icon">⏳</div></div>
+  <div class="stat-card red"><div class="stat-label">Em Atraso</div><div class="stat-value">{{ overdue_list|length }}</div><div class="stat-icon">⚠️</div></div>
+  <div class="stat-card green"><div class="stat-label">Pagas (total)</div><div class="stat-value">{{ paid_list|length }}</div><div class="stat-icon">✅</div></div>
+</div>
+
+<div class="card">
+  <div class="table-wrap">
+    <table>
+      <thead><tr><th>Cliente</th><th>Vencimento</th><th>Valor</th><th>Método</th><th>Status</th><th>Ações</th></tr></thead>
+      <tbody>
+      {% for p in payments %}
+      <tr>
+        <td style="font-weight:700">{{ p.client_name }}</td>
+        <td>{{ p.due_date }}</td>
+        <td style="font-weight:700;color:var(--n)">R$ {{ "%.0f"|format(p.amount or 0) }}</td>
+        <td><span class="badge badge-{% if p.method=='pix' %}green{% else %}blue{% endif %}">{{ 'PIX' if p.method=='pix' else 'Crédito' }}</span></td>
+        <td>
+          <span class="badge badge-{% if p.status=='paid' %}green{% elif p.due_date < today %}red{% else %}yellow{% endif %}">
+            {{ 'Pago' if p.status=='paid' else ('Atrasado' if p.due_date < today else 'Pendente') }}
+          </span>
+        </td>
+        <td>
+          <div style="display:flex;gap:6px;flex-wrap:wrap">
+            {% if p.status != 'paid' %}
+            <form method="POST" action="/payments/{{ p.id }}/pay"><button type="submit" class="btn btn-green btn-sm">✓ Pago</button></form>
+            {% endif %}
+            {% if p.status == 'paid' %}
+            <a href="/payments/{{ p.id }}/receipt" target="_blank" class="btn btn-ghost btn-sm">🧾 Recibo</a>
+            {% endif %}
+          </div>
+        </td>
+      </tr>
+      {% endfor %}
+      </tbody>
+    </table>
+  </div>
+</div>
+{% endblock %}

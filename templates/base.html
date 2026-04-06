@@ -1,0 +1,247 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<title>{% block title %}Yuna CRM{% endblock %}</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Fraunces:ital,wght@0,600;0,700;1,600&display=swap" rel="stylesheet"/>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+<style>
+:root{
+  --y:#FFC107;--yd:#E6A800;--yl:rgba(255,193,7,.12);
+  --n:#1A2B6B;--nd:#0D1A45;--nm:#2340A0;
+  --w:#fff;--gl:#F4F7FC;--g2:#EEF2FA;
+  --gr:#64748B;--tx:#0F172A;--bd:#E2E8F0;
+  --r:10px;--rl:16px;
+  --sh:0 1px 8px rgba(15,26,69,.08);
+  --shm:0 4px 24px rgba(15,26,69,.12);
+  --sbl:280px;
+}
+*{margin:0;padding:0;box-sizing:border-box}
+html{font-size:14px}
+body{font-family:"Plus Jakarta Sans",sans-serif;color:var(--tx);background:var(--gl);display:flex;min-height:100vh;-webkit-font-smoothing:antialiased}
+a{text-decoration:none;color:inherit}
+h1,h2,h3{font-family:"Fraunces",serif}
+input,select,textarea,button{font-family:inherit}
+
+/* ── SIDEBAR ── */
+.sidebar{
+  width:var(--sbl);min-width:var(--sbl);
+  background:var(--nd);
+  display:flex;flex-direction:column;
+  position:fixed;top:0;left:0;bottom:0;
+  z-index:100;overflow-y:auto;
+  transition:transform .3s;
+}
+.sb-logo{
+  display:flex;align-items:center;gap:10px;
+  padding:24px 20px 20px;
+  border-bottom:1px solid rgba(255,255,255,.07);
+}
+.sb-logo-icon{
+  width:38px;height:38px;border-radius:10px;
+  background:var(--y);display:flex;align-items:center;justify-content:center;
+  font-size:1.3rem;font-weight:900;color:var(--nd);font-family:"Fraunces",serif;
+}
+.sb-logo-text{font-size:1.1rem;font-weight:700;color:#fff;font-family:"Fraunces",serif}
+.sb-logo-sub{font-size:.65rem;color:rgba(255,255,255,.35);letter-spacing:.5px;text-transform:uppercase}
+
+.sb-section{padding:20px 14px 8px;font-size:.62rem;font-weight:700;letter-spacing:1.2px;text-transform:uppercase;color:rgba(255,255,255,.25)}
+
+.sb-link{
+  display:flex;align-items:center;gap:11px;
+  padding:11px 16px;margin:1px 8px;
+  border-radius:var(--r);
+  color:rgba(255,255,255,.55);font-size:.85rem;font-weight:500;
+  transition:all .2s;cursor:pointer;
+}
+.sb-link:hover{background:rgba(255,255,255,.07);color:#fff}
+.sb-link.active{background:var(--y);color:var(--nd);font-weight:700}
+.sb-link.active .sb-icon{color:var(--nd)}
+.sb-icon{font-size:1rem;width:20px;text-align:center;flex-shrink:0}
+
+.sb-bottom{margin-top:auto;padding:16px 8px;border-top:1px solid rgba(255,255,255,.07)}
+.sb-user{display:flex;align-items:center;gap:10px;padding:10px 12px;border-radius:var(--r)}
+.sb-avatar{width:34px;height:34px;border-radius:50%;background:var(--y);color:var(--nd);font-weight:800;font-size:.9rem;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.sb-user-name{font-size:.82rem;font-weight:600;color:#fff}
+.sb-user-role{font-size:.68rem;color:rgba(255,255,255,.35)}
+.sb-logout{display:flex;align-items:center;gap:8px;padding:9px 16px;margin:2px 8px;border-radius:var(--r);color:rgba(255,255,255,.4);font-size:.82rem;transition:all .2s}
+.sb-logout:hover{background:rgba(239,68,68,.15);color:#F87171}
+
+/* ── MAIN ── */
+.main{margin-left:var(--sbl);flex:1;display:flex;flex-direction:column;min-width:0}
+.topbar{
+  background:#fff;border-bottom:1px solid var(--bd);
+  padding:0 28px;height:60px;display:flex;align-items:center;
+  justify-content:space-between;position:sticky;top:0;z-index:50;
+}
+.topbar-title{font-size:1.05rem;font-weight:700;color:var(--n)}
+.topbar-right{display:flex;align-items:center;gap:12px}
+.topbar-date{font-size:.78rem;color:var(--gr)}
+.content{padding:28px;flex:1}
+
+/* ── CARDS ── */
+.card{background:#fff;border-radius:var(--rl);padding:24px;box-shadow:var(--sh);border:1px solid var(--bd)}
+.card-sm{background:#fff;border-radius:var(--rl);padding:20px;box-shadow:var(--sh);border:1px solid var(--bd)}
+
+/* ── STAT CARDS ── */
+.stats-grid{display:grid;grid-template-columns:repeat(4,1fr);gap:16px;margin-bottom:24px}
+.stat-card{background:#fff;border-radius:var(--rl);padding:20px;box-shadow:var(--sh);border:1px solid var(--bd);position:relative;overflow:hidden}
+.stat-card::before{content:"";position:absolute;top:0;left:0;right:0;height:3px}
+.stat-card.green::before{background:#22C55E}
+.stat-card.yellow::before{background:var(--y)}
+.stat-card.red::before{background:#EF4444}
+.stat-card.blue::before{background:var(--nm)}
+.stat-label{font-size:.72rem;font-weight:600;color:var(--gr);text-transform:uppercase;letter-spacing:.5px;margin-bottom:8px}
+.stat-value{font-family:"Fraunces",serif;font-size:2rem;font-weight:700;color:var(--n);line-height:1}
+.stat-sub{font-size:.72rem;color:var(--gr);margin-top:6px}
+.stat-icon{position:absolute;right:16px;top:50%;transform:translateY(-50%);font-size:2rem;opacity:.12}
+
+/* ── TABLES ── */
+.table-wrap{overflow-x:auto}
+table{width:100%;border-collapse:collapse}
+th{font-size:.72rem;font-weight:700;color:var(--gr);text-transform:uppercase;letter-spacing:.5px;padding:10px 14px;text-align:left;border-bottom:2px solid var(--bd)}
+td{padding:12px 14px;border-bottom:1px solid var(--bd);font-size:.85rem;vertical-align:middle}
+tr:last-child td{border-bottom:none}
+tr:hover td{background:var(--gl)}
+
+/* ── BADGES ── */
+.badge{display:inline-flex;align-items:center;gap:4px;padding:3px 10px;border-radius:50px;font-size:.72rem;font-weight:700;letter-spacing:.3px}
+.badge-green{background:#DCFCE7;color:#15803D}
+.badge-red{background:#FEE2E2;color:#DC2626}
+.badge-yellow{background:#FEF9C3;color:#A16207}
+.badge-blue{background:#DBEAFE;color:#1D4ED8}
+.badge-gray{background:#F1F5F9;color:#64748B}
+.badge-orange{background:#FED7AA;color:#C2410C}
+
+/* ── BUTTONS ── */
+.btn{display:inline-flex;align-items:center;gap:7px;padding:9px 18px;border-radius:var(--r);font-weight:600;font-size:.82rem;border:none;cursor:pointer;transition:all .2s;white-space:nowrap}
+.btn-primary{background:var(--n);color:#fff}.btn-primary:hover{background:var(--nm);transform:translateY(-1px)}
+.btn-yellow{background:var(--y);color:var(--nd)}.btn-yellow:hover{background:var(--yd)}
+.btn-ghost{background:transparent;color:var(--gr);border:1.5px solid var(--bd)}.btn-ghost:hover{border-color:var(--n);color:var(--n)}
+.btn-red{background:#FEE2E2;color:#DC2626}.btn-red:hover{background:#FECACA}
+.btn-green{background:#DCFCE7;color:#15803D}.btn-green:hover{background:#BBF7D0}
+.btn-sm{padding:6px 12px;font-size:.75rem}
+
+/* ── FORMS ── */
+.form-grid{display:grid;grid-template-columns:1fr 1fr;gap:16px}
+.form-group{display:flex;flex-direction:column;gap:5px}
+.form-group.full{grid-column:1/-1}
+label{font-size:.75rem;font-weight:700;color:var(--n);letter-spacing:.3px;text-transform:uppercase}
+input,select,textarea{padding:10px 13px;border:1.5px solid var(--bd);border-radius:var(--r);font-size:.88rem;color:var(--tx);outline:none;transition:border-color .2s;background:#fff;width:100%}
+input:focus,select:focus,textarea:focus{border-color:var(--n)}
+textarea{resize:vertical;min-height:90px}
+.form-hint{font-size:.7rem;color:var(--gr)}
+
+/* ── PAGE HEADER ── */
+.page-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:24px;flex-wrap:wrap;gap:12px}
+.page-header h1{font-size:1.5rem;font-weight:700;color:var(--n)}
+.page-header p{font-size:.85rem;color:var(--gr);margin-top:2px}
+
+/* ── MODAL ── */
+.modal-overlay{position:fixed;inset:0;background:rgba(0,0,0,.5);z-index:200;display:none;align-items:center;justify-content:center;backdrop-filter:blur(4px)}
+.modal-overlay.open{display:flex}
+.modal{background:#fff;border-radius:var(--rl);padding:28px;width:90%;max-width:560px;max-height:90vh;overflow-y:auto;box-shadow:0 20px 60px rgba(0,0,0,.25)}
+.modal-header{display:flex;align-items:center;justify-content:space-between;margin-bottom:20px}
+.modal-title{font-size:1.1rem;font-weight:700;color:var(--n)}
+.modal-close{background:none;border:none;font-size:1.4rem;cursor:pointer;color:var(--gr);padding:4px}
+
+/* ── ALERT ── */
+.alert{padding:12px 16px;border-radius:var(--r);font-size:.85rem;font-weight:500;margin-bottom:16px}
+.alert-red{background:#FEE2E2;color:#DC2626;border:1px solid #FECACA}
+.alert-green{background:#DCFCE7;color:#15803D;border:1px solid #BBF7D0}
+
+/* ── EMPTY STATE ── */
+.empty{text-align:center;padding:60px 20px;color:var(--gr)}
+.empty-icon{font-size:3rem;margin-bottom:12px;opacity:.4}
+.empty p{font-size:.92rem}
+
+/* ── PROGRESS BAR ── */
+.progress-bar{height:8px;background:var(--g2);border-radius:50px;overflow:hidden;margin-top:6px}
+.progress-fill{height:100%;border-radius:50px;background:var(--y);transition:width .5s ease}
+.progress-fill.green{background:#22C55E}
+.progress-fill.red{background:#EF4444}
+
+/* ── RESPONSIVE ── */
+@media(max-width:900px){
+  .sidebar{transform:translateX(-100%)}
+  .sidebar.open{transform:none}
+  .main{margin-left:0}
+  .stats-grid{grid-template-columns:1fr 1fr}
+  .form-grid{grid-template-columns:1fr}
+}
+</style>
+{% block extra_head %}{% endblock %}
+</head>
+<body>
+
+<aside class="sidebar" id="sidebar">
+  <div class="sb-logo">
+    <div class="sb-logo-icon">Y</div>
+    <div>
+      <div class="sb-logo-text">YUNA</div>
+      <div class="sb-logo-sub">Marketing CRM</div>
+    </div>
+  </div>
+
+  <div class="sb-section">Principal</div>
+  <a href="{{ url_for('dashboard') }}" class="sb-link {% if request.endpoint=='dashboard' %}active{% endif %}">
+    <span class="sb-icon">📊</span> Dashboard
+  </a>
+  <a href="{{ url_for('clients') }}" class="sb-link {% if 'client' in request.endpoint %}active{% endif %}">
+    <span class="sb-icon">👥</span> Clientes
+  </a>
+  <a href="{{ url_for('payments') }}" class="sb-link {% if 'payment' in request.endpoint %}active{% endif %}">
+    <span class="sb-icon">💰</span> Cobranças
+  </a>
+
+  <div class="sb-section">Operacional</div>
+  <a href="{{ url_for('agenda') }}" class="sb-link {% if 'agenda' in request.endpoint or 'recording' in request.endpoint %}active{% endif %}">
+    <span class="sb-icon">📅</span> Agenda de Gravações
+  </a>
+  <a href="{{ url_for('reports') }}" class="sb-link {% if 'report' in request.endpoint %}active{% endif %}">
+    <span class="sb-icon">📈</span> Relatórios
+  </a>
+
+  <div class="sb-bottom">
+    <div class="sb-user">
+      <div class="sb-avatar">{{ session.name[0] if session.name else 'Y' }}</div>
+      <div>
+        <div class="sb-user-name">{{ session.name or session.username }}</div>
+        <div class="sb-user-role">Administrador</div>
+      </div>
+    </div>
+    <a href="{{ url_for('logout') }}" class="sb-logout">
+      <span>🚪</span> Sair
+    </a>
+  </div>
+</aside>
+
+<div class="main">
+  <div class="topbar">
+    <div style="display:flex;align-items:center;gap:14px">
+      <button onclick="document.getElementById('sidebar').classList.toggle('open')" style="display:none;background:none;border:none;font-size:1.3rem;cursor:pointer" id="menu-btn">☰</button>
+      <span class="topbar-title">{% block topbar_title %}{% endblock %}</span>
+    </div>
+    <div class="topbar-right">
+      <span class="topbar-date" id="topbar-date"></span>
+      <a href="https://wa.me/82994243314" target="_blank" class="btn btn-yellow btn-sm">📱 WhatsApp</a>
+    </div>
+  </div>
+  <div class="content">
+    {% block content %}{% endblock %}
+  </div>
+</div>
+
+<script>
+// Date
+const d=new Date();
+document.getElementById('topbar-date').textContent=d.toLocaleDateString('pt-BR',{weekday:'short',day:'numeric',month:'short',year:'numeric'});
+// Mobile menu
+const mq=window.matchMedia('(max-width:900px)');
+function checkMq(){document.getElementById('menu-btn').style.display=mq.matches?'block':'none'}
+mq.addListener(checkMq);checkMq();
+</script>
+{% block scripts %}{% endblock %}
+</body>
+</html>
