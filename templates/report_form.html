@@ -7,7 +7,7 @@
   <a href="{{ url_for('reports') }}" class="btn btn-ghost">← Voltar</a>
 </div>
 
-<form method="POST">
+<form method="POST" enctype="multipart/form-data">
   <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;align-items:start">
     <div>
       <!-- BASIC INFO -->
@@ -60,17 +60,26 @@
             <input type="number" name="profile_visits" placeholder="0" min="0"/>
             <span class="form-hint">Visitas únicas no perfil do Instagram</span>
           </div>
-          <div class="form-group full">
+          <div class="form-group full" style="background:var(--gl);border-radius:var(--r);padding:16px;border:1.5px solid var(--bd)">
             <label>🥇 Post com Melhor Performance</label>
-            <input type="text" name="top_post1" placeholder="Ex: Reels do produto X — 5.200 visualizações"/>
+            <input type="text" name="top_post1" placeholder="Ex: Reels do produto X — 5.200 visualizações" style="margin-bottom:8px"/>
+            <label style="font-size:.7rem;color:var(--gr);text-transform:none;letter-spacing:0;font-weight:500">📸 Anexar print/foto do post (opcional)</label>
+            <input type="file" name="img_post1" accept="image/*" style="border:none;background:none;padding:4px 0;font-size:.82rem"/>
+            <div id="prev1" style="margin-top:6px"></div>
           </div>
-          <div class="form-group full">
+          <div class="form-group full" style="background:var(--gl);border-radius:var(--r);padding:16px;border:1.5px solid var(--bd)">
             <label>🥈 2º Melhor Post</label>
-            <input type="text" name="top_post2" placeholder="Ex: Story de promoção — 1.800 alcance"/>
+            <input type="text" name="top_post2" placeholder="Ex: Story de promoção — 1.800 alcance" style="margin-bottom:8px"/>
+            <label style="font-size:.7rem;color:var(--gr);text-transform:none;letter-spacing:0;font-weight:500">📸 Anexar print/foto do post (opcional)</label>
+            <input type="file" name="img_post2" accept="image/*" style="border:none;background:none;padding:4px 0;font-size:.82rem"/>
+            <div id="prev2" style="margin-top:6px"></div>
           </div>
-          <div class="form-group full">
+          <div class="form-group full" style="background:var(--gl);border-radius:var(--r);padding:16px;border:1.5px solid var(--bd)">
             <label>🥉 3º Melhor Post</label>
-            <input type="text" name="top_post3" placeholder="Ex: Feed carrossel — 980 curtidas"/>
+            <input type="text" name="top_post3" placeholder="Ex: Feed carrossel — 980 curtidas" style="margin-bottom:8px"/>
+            <label style="font-size:.7rem;color:var(--gr);text-transform:none;letter-spacing:0;font-weight:500">📸 Anexar print/foto do post (opcional)</label>
+            <input type="file" name="img_post3" accept="image/*" style="border:none;background:none;padding:4px 0;font-size:.82rem"/>
+            <div id="prev3" style="margin-top:6px"></div>
           </div>
         </div>
       </div>
@@ -179,6 +188,22 @@ function setType(type){
 }
 
 document.getElementById('plan_type_sel').addEventListener('change', function(){setType(this.value)});
+</script>
+<script>
+// Image preview on file select
+[1,2,3].forEach(n => {
+  const inp = document.querySelector(`input[name="img_post${n}"]`);
+  const prev = document.getElementById(`prev${n}`);
+  if(inp) inp.addEventListener('change', function(){
+    prev.innerHTML = '';
+    if(this.files && this.files[0]){
+      const img = document.createElement('img');
+      img.src = URL.createObjectURL(this.files[0]);
+      img.style = 'max-height:140px;border-radius:8px;object-fit:cover;border:2px solid var(--y)';
+      prev.appendChild(img);
+    }
+  });
+});
 </script>
 {% endblock %}
 {% block scripts %}
