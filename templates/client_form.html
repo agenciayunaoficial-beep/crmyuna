@@ -108,12 +108,22 @@
           {{ '💾 Salvar Alterações' if client else '✅ Cadastrar Cliente' }}
         </button>
         {% if client %}
-        <form method="POST" action="{{ url_for('delete_client', cid=client.id) }}" onsubmit="return confirm('Tem certeza? Todos os dados do cliente serão apagados.')">
-          <button type="submit" class="btn btn-red" style="width:100%;justify-content:center">🗑️ Excluir Cliente</button>
-        </form>
+        <button type="button" class="btn btn-red" style="width:100%;justify-content:center" onclick="confirmDelete()">🗑️ Excluir Cliente</button>
         {% endif %}
       </div>
     </div>
   </div>
 </form>
+
+{% if client %}
+<!-- Delete form OUTSIDE main form (avoids nested form bug) -->
+<form id="delete-form" method="POST" action="{{ url_for('delete_client', cid=client.id) }}" style="display:none"></form>
+<script>
+function confirmDelete(){
+  if(confirm('⚠️ Tem certeza?\n\nTodos os dados do cliente (cobranças, gravações, relatórios) serão apagados permanentemente.')){
+    document.getElementById('delete-form').submit();
+  }
+}
+</script>
+{% endif %}
 {% endblock %}
