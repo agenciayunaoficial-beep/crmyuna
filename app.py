@@ -486,16 +486,18 @@ def new_report():
 @login_required
 def view_report(rid):
     conn = get_db()
-    report = conn.execute("""
+    report_row = conn.execute("""
         SELECT r.*, c.name as client_name, c.instagram, c.plan, c.plan_type
         FROM reports r JOIN clients c ON c.id=r.client_id WHERE r.id=?
     """, (rid,)).fetchone()
-    # Historical data for charts
-    history = conn.execute("""
+    history_rows = conn.execute("""
         SELECT * FROM reports WHERE client_id=? AND report_type=?
         ORDER BY year ASC, month ASC LIMIT 12
-    """, (report['client_id'], report['report_type'])).fetchall()
+    """, (report_row['client_id'], report_row['report_type'])).fetchall()
     conn.close()
+    # Convert sqlite3.Row to dict for JSON serialization in templates
+    report = dict(report_row)
+    history = [dict(r) for r in history_rows]
     months_pt = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']
     return render_template('report_view.html', report=report, history=history, months_pt=months_pt)
 
