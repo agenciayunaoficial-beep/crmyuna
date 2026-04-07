@@ -110,20 +110,42 @@ def init_db():
         invested_value REAL,
         ctr REAL,
         -- metas
-        goal_followers INTEGER,
-        goal_visits INTEGER,
-        goal_new_clients INTEGER,
-        goal_reach INTEGER,
-        goal_ctr REAL,
+        -- Social Media metas (3 tiers)
+        goal_min_followers INTEGER,
+        goal_ok_followers INTEGER,
+        goal_super_followers INTEGER,
+        goal_min_visits INTEGER,
+        goal_ok_visits INTEGER,
+        goal_super_visits INTEGER,
+        -- Trafego metas (3 tiers)
+        goal_min_clients INTEGER,
+        goal_ok_clients INTEGER,
+        goal_super_clients INTEGER,
+        goal_min_reach INTEGER,
+        goal_ok_reach INTEGER,
+        goal_super_reach INTEGER,
+        goal_min_ctr REAL,
+        goal_ok_ctr REAL,
+        goal_super_ctr REAL,
+        goal_max_cpr REAL,
         notes TEXT,
         created_at TEXT,
         FOREIGN KEY (client_id) REFERENCES clients(id)
     )''')
 
-    # Migrate: add image columns if not exist
-    for col in ['top_post1_img','top_post2_img','top_post3_img']:
+    # Migrate: add columns if not exist
+    new_cols = [
+        ('top_post1_img','TEXT'),('top_post2_img','TEXT'),('top_post3_img','TEXT'),
+        ('goal_min_followers','INTEGER'),('goal_ok_followers','INTEGER'),('goal_super_followers','INTEGER'),
+        ('goal_min_visits','INTEGER'),('goal_ok_visits','INTEGER'),('goal_super_visits','INTEGER'),
+        ('goal_min_clients','INTEGER'),('goal_ok_clients','INTEGER'),('goal_super_clients','INTEGER'),
+        ('goal_min_reach','INTEGER'),('goal_ok_reach','INTEGER'),('goal_super_reach','INTEGER'),
+        ('goal_min_ctr','REAL'),('goal_ok_ctr','REAL'),('goal_super_ctr','REAL'),
+        ('goal_max_cpr','REAL'),
+    ]
+    for col, typ in new_cols:
         try:
-            c.execute(f'ALTER TABLE reports ADD COLUMN {col} TEXT')
+            c.execute(f'ALTER TABLE reports ADD COLUMN {col} {typ}')
         except:
             pass
 
@@ -483,9 +505,13 @@ def new_report():
             (id,client_id,month,year,report_type,
              followers,profile_visits,top_post1,top_post1_img,top_post2,top_post2_img,top_post3,top_post3_img,
              new_whatsapp_clients,reach,cost_per_result,invested_value,ctr,
-             goal_followers,goal_visits,goal_new_clients,goal_reach,goal_ctr,
+             goal_min_followers,goal_ok_followers,goal_super_followers,
+             goal_min_visits,goal_ok_visits,goal_super_visits,
+             goal_min_clients,goal_ok_clients,goal_super_clients,
+             goal_min_reach,goal_ok_reach,goal_super_reach,
+             goal_min_ctr,goal_ok_ctr,goal_super_ctr,goal_max_cpr,
              notes,created_at)
-            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""", (
+            VALUES (?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?,?)""", (
             rid,
             request.form['client_id'],
             int(request.form['month']), int(request.form['year']),
@@ -500,11 +526,22 @@ def new_report():
             float(request.form.get('cost_per_result',0) or 0),
             float(request.form.get('invested_value',0) or 0),
             float(request.form.get('ctr',0) or 0),
-            int(request.form.get('goal_followers',0) or 0),
-            int(request.form.get('goal_visits',0) or 0),
-            int(request.form.get('goal_new_clients',0) or 0),
-            int(request.form.get('goal_reach',0) or 0),
-            float(request.form.get('goal_ctr',0) or 0),
+            int(request.form.get('goal_min_followers',0) or 0),
+            int(request.form.get('goal_ok_followers',0) or 0),
+            int(request.form.get('goal_super_followers',0) or 0),
+            int(request.form.get('goal_min_visits',0) or 0),
+            int(request.form.get('goal_ok_visits',0) or 0),
+            int(request.form.get('goal_super_visits',0) or 0),
+            int(request.form.get('goal_min_clients',0) or 0),
+            int(request.form.get('goal_ok_clients',0) or 0),
+            int(request.form.get('goal_super_clients',0) or 0),
+            int(request.form.get('goal_min_reach',0) or 0),
+            int(request.form.get('goal_ok_reach',0) or 0),
+            int(request.form.get('goal_super_reach',0) or 0),
+            float(request.form.get('goal_min_ctr',0) or 0),
+            float(request.form.get('goal_ok_ctr',0) or 0),
+            float(request.form.get('goal_super_ctr',0) or 0),
+            float(request.form.get('goal_max_cpr',0) or 0),
             request.form.get('notes',''),
             datetime.now().isoformat()
         ))
@@ -525,12 +562,21 @@ def view_report(rid):
         SELECT * FROM reports WHERE client_id=? AND report_type=?
         ORDER BY year ASC, month ASC LIMIT 12
     """, (report_row['client_id'], report_row['report_type'])).fetchall()
+
+    # Get previous month report for comparison
+    prev_month = report_row['month'] - 1 if report_row['month'] > 1 else 12
+    prev_year = report_row['year'] if report_row['month'] > 1 else report_row['year'] - 1
+    prev_row = conn.execute("""
+        SELECT * FROM reports WHERE client_id=? AND report_type=? AND month=? AND year=?
+    """, (report_row['client_id'], report_row['report_type'], prev_month, prev_year)).fetchone()
+
     conn.close()
-    # Convert sqlite3.Row to dict for JSON serialization in templates
     report = dict(report_row)
     history = [dict(r) for r in history_rows]
+    prev = dict(prev_row) if prev_row else None
     months_pt = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez']
-    return render_template('report_view.html', report=report, history=history, months_pt=months_pt)
+    return render_template('report_view.html', report=report, history=history,
+                           prev=prev, months_pt=months_pt)
 
 @app.route('/reports/<rid>/delete', methods=['POST'])
 @login_required
