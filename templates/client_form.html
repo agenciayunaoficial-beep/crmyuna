@@ -17,21 +17,15 @@
         <div style="font-size:.92rem;font-weight:700;color:var(--n);margin-bottom:18px">📋 Dados do Cliente</div>
         <div class="form-grid">
           <div class="form-group full">
-            <label>Nome completo *</label>
-            <input type="text" name="name" value="{{ client.name if client else '' }}" required placeholder="Nome do cliente ou empresa"/>
+            <label>Nome da Empresa *</label>
+            <input type="text" name="name" value="{{ client.name if client else '' }}" required placeholder="Nome da empresa ou cliente"/>
           </div>
-          <div class="form-group">
-            <label>WhatsApp</label>
-            <input type="text" name="whatsapp" value="{{ client.whatsapp if client else '' }}" placeholder="(82) 99999-9999"/>
-          </div>
-          <div class="form-group">
+          <div class="form-group full">
             <label>Instagram</label>
             <input type="text" name="instagram" value="{{ client.instagram if client else '' }}" placeholder="@perfil"/>
           </div>
-          <div class="form-group full">
-            <label>E-mail</label>
-            <input type="email" name="email" value="{{ client.email if client else '' }}" placeholder="email@cliente.com"/>
-          </div>
+          <input type="hidden" name="whatsapp" value="{{ client.whatsapp if client else '' }}"/>
+          <input type="hidden" name="email" value="{{ client.email if client else '' }}"/>
           <div class="form-group full">
             <label>Observações</label>
             <textarea name="notes" placeholder="Anotações sobre o cliente...">{{ client.notes if client else '' }}</textarea>
