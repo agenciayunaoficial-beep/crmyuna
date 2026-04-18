@@ -1,389 +1,272 @@
 {% extends 'base.html' %}
-{% block title %}Relatório {{ report.client_name }} — Yuna CRM{% endblock %}
+{% block title %}Relatório {{ report.client_name }}{% endblock %}
 {% block topbar_title %}Relatório Mensal{% endblock %}
 {% block extra_head %}
 <style>
-/* ── METRIC CARDS ── */
-.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:14px;margin-bottom:22px}
-.kpi{background:#fff;border-radius:var(--rl);padding:22px 18px;box-shadow:var(--sh);border:1px solid var(--bd);position:relative;overflow:hidden}
-.kpi::before{content:"";position:absolute;top:0;left:0;right:0;height:4px}
-.kpi.blue::before{background:var(--n)}
-.kpi.yellow::before{background:var(--y)}
-.kpi.green::before{background:#22C55E}
-.kpi.orange::before{background:#F97316}
-.kpi.purple::before{background:#8B5CF6}
-.kpi-icon{font-size:1.3rem;margin-bottom:8px;display:block}
-.kpi-val{font-family:"Fraunces",serif;font-size:2rem;font-weight:700;color:var(--n);line-height:1;display:block}
-.kpi-label{font-size:.68rem;font-weight:700;color:var(--gr);text-transform:uppercase;letter-spacing:.5px;margin-top:5px;display:block}
-.kpi-delta{display:inline-flex;align-items:center;gap:4px;font-size:.72rem;font-weight:700;padding:3px 8px;border-radius:50px;margin-top:8px}
-.delta-up{background:#DCFCE7;color:#15803D}
-.delta-down{background:#FEE2E2;color:#DC2626}
-.delta-eq{background:#F1F5F9;color:#64748B}
-
-/* ── GOALS TABLE ── */
-.goals-table{width:100%;border-collapse:collapse}
-.goals-table th{font-size:.68rem;font-weight:700;color:var(--gr);text-transform:uppercase;letter-spacing:.5px;padding:8px 12px;text-align:center;border-bottom:2px solid var(--bd)}
-.goals-table th:first-child{text-align:left}
-.goals-table td{padding:10px 12px;border-bottom:1px solid var(--bd);font-size:.88rem;vertical-align:middle;text-align:center}
-.goals-table td:first-child{text-align:left;font-weight:600}
-.goals-table tr:last-child td{border-bottom:none}
-.tier-min{background:#FFF7ED;color:#C2410C;font-weight:700;border-radius:6px;padding:4px 10px;white-space:nowrap;display:inline-block}
-.tier-ok{background:#F0FDF4;color:#15803D;font-weight:700;border-radius:6px;padding:4px 10px;white-space:nowrap;display:inline-block}
-.tier-super{background:#EFF6FF;color:#1D4ED8;font-weight:700;border-radius:6px;padding:4px 10px;white-space:nowrap;display:inline-block}
-.result-cell{font-weight:800;font-size:.95rem}
-.hit-super{color:#1D4ED8}.hit-ok{color:#15803D}.hit-min{color:#D97706}.hit-miss{color:#DC2626}
-.hit-badge{display:inline-flex;align-items:center;gap:4px;padding:4px 10px;border-radius:50px;font-size:.72rem;font-weight:700}
-.hb-super{background:#EFF6FF;color:#1D4ED8}
-.hb-ok{background:#F0FDF4;color:#15803D}
-.hb-min{background:#FFF7ED;color:#D97706}
-.hb-miss{background:#FEE2E2;color:#DC2626}
-
-/* ── POSTS ── */
-.posts-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(220px,1fr));gap:14px;margin-bottom:22px}
-.post-card{background:#fff;border-radius:var(--rl);overflow:hidden;border:1.5px solid var(--bd);transition:all .25s;cursor:default}
-.post-card:hover{box-shadow:var(--shm);transform:translateY(-3px)}
-.post-img{width:100%;height:180px;object-fit:cover;display:block}
-.post-no-img{height:70px;display:flex;align-items:center;justify-content:center;font-size:2rem}
-.post-body{padding:12px 14px}
-.post-medal{font-size:.78rem;font-weight:700;margin-bottom:4px}
-.post-text{font-size:.85rem;font-weight:500;color:var(--tx);line-height:1.45}
-
-/* ── PERIOD TABS ── */
-.period-tabs{display:flex;gap:6px;flex-wrap:wrap}
+.kpi-grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(160px,1fr));gap:12px;margin-bottom:18px}
+.donut-row{display:grid;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:16px;margin-bottom:18px}
+.donut-wrap{background:#fff;border-radius:var(--rl);padding:20px;box-shadow:var(--sh);border:1px solid var(--bd);display:flex;flex-direction:column;align-items:center}
+.donut-label{font-size:.72rem;font-weight:700;color:var(--gr);text-transform:uppercase;letter-spacing:.5px;margin-bottom:10px}
+.donut-val{font-family:"Fraunces",serif;font-size:1.5rem;font-weight:700;color:var(--n);margin-top:8px}
+.best-post{background:#fff;border-radius:var(--rl);overflow:hidden;border:1.5px solid var(--bd);transition:all .25s}
+.best-post:hover{box-shadow:var(--shm);border-color:var(--y)}
+.best-post img{width:100%;max-height:240px;object-fit:cover;display:block;cursor:zoom-in}
+.best-post-body{padding:14px}
+.tier-table{width:100%;border-collapse:collapse}
+.tier-table th{font-size:.65rem;font-weight:700;color:var(--gr);text-transform:uppercase;letter-spacing:.5px;padding:8px 12px;border-bottom:2px solid var(--bd);text-align:center}
+.tier-table th:first-child{text-align:left}
+.tier-table td{padding:10px 12px;border-bottom:1px solid var(--bd);font-size:.84rem;text-align:center;vertical-align:middle}
+.tier-table td:first-child{text-align:left;font-weight:600}
+.tier-table tr:last-child td{border-bottom:none}
+.tier-min{background:#FFF7ED;color:#C2410C;font-weight:700;border-radius:6px;padding:3px 9px;display:inline-block}
+.tier-ok{background:#F0FDF4;color:#15803D;font-weight:700;border-radius:6px;padding:3px 9px;display:inline-block}
+.tier-super{background:#EFF6FF;color:#1D4ED8;font-weight:700;border-radius:6px;padding:3px 9px;display:inline-block}
+.ptabs{display:flex;gap:6px;flex-wrap:wrap}
 .ptab{padding:6px 14px;border-radius:50px;border:1.5px solid var(--bd);background:#fff;font-size:.76rem;font-weight:600;cursor:pointer;transition:all .2s;color:var(--gr)}
 .ptab:hover,.ptab.act{background:var(--n);color:#fff;border-color:var(--n)}
-
-@media print{
-  .sidebar,.topbar,.btn-ghost,button{display:none!important}
-  .main{margin-left:0!important}
-  .card,.kpi{break-inside:avoid}
-}
-@media(max-width:700px){.kpi-grid{grid-template-columns:1fr 1fr}}
+@media print{.no-print{display:none!important}.main{margin-left:0!important}.sb{display:none!important}.topbar{display:none!important}}
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 {% endblock %}
 {% block content %}
-
-{% set mpt = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'] %}
+{% set mpt = months_pt %}
 
 <div class="page-header">
   <div>
     <h1>{{ mpt[report.month-1] }}/{{ report.year }} — {{ report.client_name }}</h1>
-    <p>{{ 'Social Media' if report.report_type=='social' else 'Tráfego Pago' }}{% if report.instagram %} · {{ report.instagram }}{% endif %} · {{ report.plan or '' }}</p>
+    <p>{{ 'Social Media' if report.report_type=='social' else 'Tráfego Pago' }}{% if report.instagram %} · {{ report.instagram }}{% endif %}{% if report.plan %} · {{ report.plan }}{% endif %}</p>
   </div>
-  <div style="display:flex;gap:8px;flex-wrap:wrap">
-    <button onclick="window.print()" class="btn btn-ghost">🖨️ Imprimir</button>
+  <div style="display:flex;gap:8px;flex-wrap:wrap" class="no-print">
+    <button onclick="window.print()" class="btn btn-ghost">🖨️ Imprimir / PDF</button>
     <a href="{{ url_for('client_detail', cid=report.client_id) }}" class="btn btn-ghost">← Cliente</a>
   </div>
 </div>
 
-{# ── HELPERS ── #}
-{% macro delta(current, prev_val, higher_is_better=true) %}
-  {% if prev_val and prev_val > 0 %}
-    {% set diff = current - prev_val %}
-    {% set pct = ((diff / prev_val) * 100)|round(1) %}
-    {% if diff > 0 and higher_is_better %}
-      <span class="kpi-delta delta-up">▲ {{ pct }}% vs mês anterior</span>
-    {% elif diff < 0 and not higher_is_better %}
-      <span class="kpi-delta delta-up">▼ {{ (pct * -1) }}% vs mês anterior</span>
-    {% elif diff == 0 %}
-      <span class="kpi-delta delta-eq">= igual ao mês anterior</span>
-    {% else %}
-      <span class="kpi-delta delta-down">{% if diff > 0 %}▲{% else %}▼{% endif %} {{ pct|abs }}% vs mês anterior</span>
-    {% endif %}
+{# ─── HELPER MACROS ─── #}
+{% macro delta_badge(cur, prv) %}
+  {% if prv and prv > 0 %}
+    {% set d = cur - prv %}{% set p = ((d/prv)*100)|round(1) %}
+    <span class="kpi-delta {% if d > 0 %}delta-up{% elif d < 0 %}delta-down{% else %}delta-eq{% endif %}">
+      {{ '▲' if d > 0 else ('▼' if d < 0 else '=') }} {{ p|abs }}% vs mês ant.
+    </span>
   {% endif %}
 {% endmacro %}
 
-{% macro goal_hit(val, gmin, gok, gsuper, lower_better=false) %}
+{% macro goal_badge(val, gmin, gok, gsuper, lower=false) %}
   {% if gsuper and gsuper > 0 %}
-    {% if not lower_better %}
-      {% if val >= gsuper %}<span class="hit-badge hb-super">🔵 Super Meta!</span>
-      {% elif val >= gok %}<span class="hit-badge hb-ok">🟢 Meta Aceitável</span>
-      {% elif val >= gmin %}<span class="hit-badge hb-min">🟠 Meta Mínima</span>
-      {% else %}<span class="hit-badge hb-miss">🔴 Abaixo da Meta</span>{% endif %}
+    {% if not lower %}
+      {% if val >= gsuper %}<span class="hbadge hb-super">🔵 Super Meta!</span>
+      {% elif val >= gok %}<span class="hbadge hb-ok">🟢 Aceitável</span>
+      {% elif val >= gmin %}<span class="hbadge hb-min">🟠 Mínima</span>
+      {% else %}<span class="hbadge hb-none">🔴 Abaixo</span>{% endif %}
     {% else %}
-      {% if val <= gsuper %}<span class="hit-badge hb-super">🔵 Super Meta!</span>
-      {% elif val <= gok %}<span class="hit-badge hb-ok">🟢 Meta Aceitável</span>
-      {% elif val <= gmin %}<span class="hit-badge hb-min">🟠 Meta Mínima</span>
-      {% else %}<span class="hit-badge hb-miss">🔴 Acima do Limite</span>{% endif %}
+      {% if val <= gmin %}<span class="hbadge hb-super">🔵 Super Meta!</span>
+      {% elif val <= gok %}<span class="hbadge hb-ok">🟢 Aceitável</span>
+      {% elif val <= gsuper %}<span class="hbadge hb-min">🟠 Mínima</span>
+      {% else %}<span class="hbadge hb-none">🔴 Acima</span>{% endif %}
     {% endif %}
   {% endif %}
 {% endmacro %}
 
-{# ═══════════════ SOCIAL MEDIA ═══════════════ #}
+{# ═══ SOCIAL MEDIA ═══ #}
 {% if report.report_type == 'social' %}
 
-<!-- KPI CARDS -->
 <div class="kpi-grid">
-  <div class="kpi blue">
-    <span class="kpi-icon">👥</span>
-    <span class="kpi-val">{{ "{:,}".format(report.followers or 0).replace(',','.') }}</span>
-    <span class="kpi-label">Seguidores</span>
-    {{ delta(report.followers or 0, prev.followers if prev else 0) }}
+  <div class="kpi-card kpi-blue"><span class="kpi-label">👥 Seguidores</span><span class="kpi-val">{{ "{:,}".format(report.followers or 0).replace(',','.') }}</span>{{ delta_badge(report.followers or 0, prev.followers if prev else 0) }}</div>
+  <div class="kpi-card kpi-yellow"><span class="kpi-label">👁️ Visitas no Perfil</span><span class="kpi-val">{{ "{:,}".format(report.profile_visits or 0).replace(',','.') }}</span>{{ delta_badge(report.profile_visits or 0, prev.profile_visits if prev else 0) }}</div>
+  <div class="kpi-card kpi-purple"><span class="kpi-label">💬 Msgs Instagram</span><span class="kpi-val">{{ "{:,}".format(report.ig_messages or 0).replace(',','.') }}</span>{{ delta_badge(report.ig_messages or 0, prev.ig_messages if prev else 0) }}</div>
+  {% if prev %}<div class="kpi-card kpi-green"><span class="kpi-label">📈 Novos Seguidores</span><span class="kpi-val">+{{ "{:,}".format((report.followers or 0) - (prev.followers or 0)).replace(',','.') }}</span><span class="kpi-delta delta-eq">vs {{ mpt[prev.month-1] }}/{{ prev.year }}</span></div>{% endif %}
+</div>
+
+<!-- DONUTS SOCIAL -->
+<div class="donut-row">
+  <div class="donut-wrap">
+    <div class="donut-label">👥 Seguidores</div>
+    <canvas id="d1" width="140" height="140"></canvas>
+    <div class="donut-val">{{ "{:,}".format(report.followers or 0).replace(',','.') }}</div>
+    {% if prev and prev.followers %}<div style="font-size:.74rem;color:var(--gr);margin-top:4px">Anterior: {{ "{:,}".format(prev.followers).replace(',','.') }}</div>{% endif %}
   </div>
-  <div class="kpi yellow">
-    <span class="kpi-icon">👁️</span>
-    <span class="kpi-val">{{ "{:,}".format(report.profile_visits or 0).replace(',','.') }}</span>
-    <span class="kpi-label">Visitas no Perfil</span>
-    {{ delta(report.profile_visits or 0, prev.profile_visits if prev else 0) }}
+  <div class="donut-wrap">
+    <div class="donut-label">👁️ Visitas no Perfil</div>
+    <canvas id="d2" width="140" height="140"></canvas>
+    <div class="donut-val">{{ "{:,}".format(report.profile_visits or 0).replace(',','.') }}</div>
+    {% if prev and prev.profile_visits %}<div style="font-size:.74rem;color:var(--gr);margin-top:4px">Anterior: {{ "{:,}".format(prev.profile_visits).replace(',','.') }}</div>{% endif %}
   </div>
-  {% if prev %}
-  <div class="kpi green">
-    <span class="kpi-icon">📈</span>
-    <span class="kpi-val">+{{ "{:,}".format((report.followers or 0) - (prev.followers or 0)).replace(',','.') }}</span>
-    <span class="kpi-label">Novos Seguidores no Mês</span>
-    <span class="kpi-delta delta-eq">vs {{ mpt[prev.month-1] }}/{{ prev.year }}</span>
+  <div class="donut-wrap">
+    <div class="donut-label">💬 Mensagens</div>
+    <canvas id="d3" width="140" height="140"></canvas>
+    <div class="donut-val">{{ "{:,}".format(report.ig_messages or 0).replace(',','.') }}</div>
+    {% if prev and prev.ig_messages %}<div style="font-size:.74rem;color:var(--gr);margin-top:4px">Anterior: {{ "{:,}".format(prev.ig_messages).replace(',','.') }}</div>{% endif %}
   </div>
-  {% endif %}
+</div>
+
+<!-- POST DESTAQUE -->
+{% if report.top_post_desc or report.top_post_img %}
+<div class="card" style="margin-bottom:18px">
+  <div class="card-title">🏆 Post com Maior Engajamento</div>
+  <div style="display:grid;grid-template-columns:{% if report.top_post_img %}1fr 2fr{% else %}1fr{% endif %};gap:20px;align-items:start">
+    {% if report.top_post_img %}
+    <div class="best-post">
+      <img src="{{ url_for('static', filename=report.top_post_img) }}" onclick="window.open(this.src,'_blank')" title="Clique para ampliar"/>
+      {% if report.top_post_desc %}<div class="best-post-body"><div style="font-weight:600;font-size:.88rem">{{ report.top_post_desc }}</div></div>{% endif %}
+    </div>
+    {% else %}
+    <div style="padding:20px;background:var(--gl);border-radius:var(--rl);font-size:.92rem;font-weight:500;color:var(--tx)">📌 {{ report.top_post_desc }}</div>
+    {% endif %}
+  </div>
+</div>
+{% endif %}
+
+{# ═══ TRÁFEGO PAGO ═══ #}
+{% else %}
+
+<div class="kpi-grid">
+  <div class="kpi-card kpi-blue"><span class="kpi-label">📡 Impressões</span><span class="kpi-val">{{ "{:,}".format(report.impressions or 0).replace(',','.') }}</span>{{ delta_badge(report.impressions or 0, prev.impressions if prev else 0) }}</div>
+  <div class="kpi-card kpi-yellow"><span class="kpi-label">💬 Msgs Novos Clientes</span><span class="kpi-val">{{ report.new_messages or 0 }}</span>{{ delta_badge(report.new_messages or 0, prev.new_messages if prev else 0) }}</div>
+  <div class="kpi-card kpi-green"><span class="kpi-label">🖱️ CTR</span><span class="kpi-val">{{ "%.2f"|format(report.ctr or 0) }}%</span>{{ delta_badge(report.ctr or 0, prev.ctr if prev else 0) }}</div>
+  <div class="kpi-card kpi-orange"><span class="kpi-label">💡 CPC</span><span class="kpi-val">R$ {{ "%.2f"|format(report.cpc or 0) }}</span>{{ delta_badge(report.cpc or 0, prev.cpc if prev else 0) }}</div>
+  <div class="kpi-card kpi-purple"><span class="kpi-label">🔁 Frequência Média</span><span class="kpi-val">{{ "%.1f"|format(report.avg_frequency or 0) }}x</span>{{ delta_badge(report.avg_frequency or 0, prev.avg_frequency if prev else 0) }}</div>
+</div>
+
+<!-- DONUTS TRAFEGO -->
+<div class="donut-row">
+  <div class="donut-wrap">
+    <div class="donut-label">💬 Msgs vs Meta</div>
+    <canvas id="d1" width="140" height="140"></canvas>
+    <div class="donut-val">{{ report.new_messages or 0 }}</div>
+    {% if report.goal_super_clients %}<div style="font-size:.74rem;color:var(--gr);margin-top:4px">Meta super: {{ report.goal_super_clients }}</div>{% endif %}
+  </div>
+  <div class="donut-wrap">
+    <div class="donut-label">🖱️ CTR vs Meta</div>
+    <canvas id="d2" width="140" height="140"></canvas>
+    <div class="donut-val">{{ "%.2f"|format(report.ctr or 0) }}%</div>
+    {% if report.goal_super_ctr %}<div style="font-size:.74rem;color:var(--gr);margin-top:4px">Meta super: {{ "%.1f"|format(report.goal_super_ctr) }}%</div>{% endif %}
+  </div>
+  <div class="donut-wrap">
+    <div class="donut-label">📡 Impressões</div>
+    <canvas id="d3" width="140" height="140"></canvas>
+    <div class="donut-val">{{ "{:,}".format(report.impressions or 0).replace(',','.') }}</div>
+    {% if prev and prev.impressions %}<div style="font-size:.74rem;color:var(--gr);margin-top:4px">Anterior: {{ "{:,}".format(prev.impressions).replace(',','.') }}</div>{% endif %}
+  </div>
 </div>
 
 <!-- METAS TABLE -->
-{% if report.goal_super_followers or report.goal_super_visits %}
-<div class="card" style="margin-bottom:20px">
-  <div style="font-size:.92rem;font-weight:700;color:var(--n);margin-bottom:16px">🎯 Metas vs Resultados</div>
+{% if report.goal_super_clients or report.goal_super_ctr %}
+<div class="card" style="margin-bottom:18px">
+  <div class="card-title">🎯 Metas vs Resultados</div>
   <div style="overflow-x:auto">
-    <table class="goals-table">
-      <thead>
-        <tr>
-          <th>Métrica</th>
-          <th>Resultado</th>
-          <th><span class="tier-min">Mínima</span></th>
-          <th><span class="tier-ok">Aceitável</span></th>
-          <th><span class="tier-super">Super Meta</span></th>
-          <th>Status</th>
-        </tr>
-      </thead>
+    <table class="tier-table">
+      <thead><tr><th>Métrica</th><th>Resultado</th><th><span class="tier-min">Mínima</span></th><th><span class="tier-ok">Aceitável</span></th><th><span class="tier-super">Super Meta</span></th><th>Status</th></tr></thead>
       <tbody>
-        {% if report.goal_super_followers %}
-        <tr>
-          <td>👥 Seguidores</td>
-          <td class="result-cell">{{ "{:,}".format(report.followers or 0).replace(',','.') }}</td>
-          <td>{{ "{:,}".format(report.goal_min_followers or 0).replace(',','.') }}</td>
-          <td>{{ "{:,}".format(report.goal_ok_followers or 0).replace(',','.') }}</td>
-          <td>{{ "{:,}".format(report.goal_super_followers or 0).replace(',','.') }}</td>
-          <td>{{ goal_hit(report.followers or 0, report.goal_min_followers or 0, report.goal_ok_followers or 0, report.goal_super_followers or 0) }}</td>
-        </tr>
-        {% endif %}
-        {% if report.goal_super_visits %}
-        <tr>
-          <td>👁️ Visitas no Perfil</td>
-          <td class="result-cell">{{ "{:,}".format(report.profile_visits or 0).replace(',','.') }}</td>
-          <td>{{ "{:,}".format(report.goal_min_visits or 0).replace(',','.') }}</td>
-          <td>{{ "{:,}".format(report.goal_ok_visits or 0).replace(',','.') }}</td>
-          <td>{{ "{:,}".format(report.goal_super_visits or 0).replace(',','.') }}</td>
-          <td>{{ goal_hit(report.profile_visits or 0, report.goal_min_visits or 0, report.goal_ok_visits or 0, report.goal_super_visits or 0) }}</td>
-        </tr>
-        {% endif %}
-      </tbody>
-    </table>
-  </div>
-</div>
-{% endif %}
-
-<!-- TOP POSTS -->
-{% if report.top_post1 or report.top_post2 or report.top_post3 %}
-<div class="card" style="margin-bottom:20px">
-  <div style="font-size:.92rem;font-weight:700;color:var(--n);margin-bottom:16px">🏆 Posts com Melhor Performance</div>
-  <div class="posts-grid">
-    {% for n, medal, color in [('top_post1','🥇','linear-gradient(135deg,#FFC107,#E6A800)'),('top_post2','🥈','linear-gradient(135deg,#C0C0C0,#A0A0A0)'),('top_post3','🥉','linear-gradient(135deg,#CD7F32,#A0522D)')] %}
-    {% set txt = report[n] %}
-    {% set img = report[n+'_img'] %}
-    {% if txt %}
-    <div class="post-card">
-      {% if img %}
-      <img src="{{ url_for('static', filename=img) }}" class="post-img" onclick="this.requestFullscreen()" title="Clique para ampliar" style="cursor:zoom-in"/>
-      {% else %}
-      <div class="post-no-img" style="background:{{ color }}">{{ medal }}</div>
-      {% endif %}
-      <div class="post-body">
-        <div class="post-medal">{{ medal }} {{ loop.index }}º Lugar</div>
-        <div class="post-text">{{ txt }}</div>
-      </div>
-    </div>
-    {% endif %}
-    {% endfor %}
-  </div>
-</div>
-{% endif %}
-
-{# ═══════════════ TRÁFEGO PAGO ═══════════════ #}
-{% else %}
-
-<!-- KPI CARDS TRAFEGO -->
-<div class="kpi-grid">
-  <div class="kpi blue">
-    <span class="kpi-icon">💬</span>
-    <span class="kpi-val">{{ report.new_whatsapp_clients or 0 }}</span>
-    <span class="kpi-label">Novos no WhatsApp</span>
-    {{ delta(report.new_whatsapp_clients or 0, prev.new_whatsapp_clients if prev else 0) }}
-  </div>
-  <div class="kpi yellow">
-    <span class="kpi-icon">📡</span>
-    <span class="kpi-val">{{ "{:,}".format(report.reach or 0).replace(',','.') }}</span>
-    <span class="kpi-label">Alcance</span>
-    {{ delta(report.reach or 0, prev.reach if prev else 0) }}
-  </div>
-  <div class="kpi green">
-    <span class="kpi-icon">💡</span>
-    <span class="kpi-val">R$ {{ "%.2f"|format(report.cost_per_result or 0) }}</span>
-    <span class="kpi-label">Custo por Resultado</span>
-    {{ delta(report.cost_per_result or 0, prev.cost_per_result if prev else 0, higher_is_better=false) }}
-  </div>
-  <div class="kpi orange">
-    <span class="kpi-icon">💰</span>
-    <span class="kpi-val">R$ {{ "%.0f"|format(report.invested_value or 0) }}</span>
-    <span class="kpi-label">Valor Investido</span>
-  </div>
-  <div class="kpi purple">
-    <span class="kpi-icon">🖱️</span>
-    <span class="kpi-val">{{ "%.2f"|format(report.ctr or 0) }}%</span>
-    <span class="kpi-label">CTR</span>
-    {{ delta(report.ctr or 0, prev.ctr if prev else 0) }}
-  </div>
-</div>
-
-<!-- METAS TABLE TRAFEGO -->
-{% if report.goal_super_clients or report.goal_super_reach %}
-<div class="card" style="margin-bottom:20px">
-  <div style="font-size:.92rem;font-weight:700;color:var(--n);margin-bottom:16px">🎯 Metas vs Resultados</div>
-  <div style="overflow-x:auto">
-    <table class="goals-table">
-      <thead>
-        <tr>
-          <th>Métrica</th>
-          <th>Resultado</th>
-          <th><span class="tier-min">Mínima</span></th>
-          <th><span class="tier-ok">Aceitável</span></th>
-          <th><span class="tier-super">Super Meta</span></th>
-          <th>Status</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% if report.goal_super_clients %}
-        <tr>
-          <td>💬 Clientes WhatsApp</td>
-          <td class="result-cell">{{ report.new_whatsapp_clients or 0 }}</td>
-          <td>{{ report.goal_min_clients or 0 }}</td>
-          <td>{{ report.goal_ok_clients or 0 }}</td>
-          <td>{{ report.goal_super_clients or 0 }}</td>
-          <td>{{ goal_hit(report.new_whatsapp_clients or 0, report.goal_min_clients or 0, report.goal_ok_clients or 0, report.goal_super_clients or 0) }}</td>
-        </tr>
-        {% endif %}
-        {% if report.goal_super_reach %}
-        <tr>
-          <td>📡 Alcance</td>
-          <td class="result-cell">{{ "{:,}".format(report.reach or 0).replace(',','.') }}</td>
-          <td>{{ "{:,}".format(report.goal_min_reach or 0).replace(',','.') }}</td>
-          <td>{{ "{:,}".format(report.goal_ok_reach or 0).replace(',','.') }}</td>
-          <td>{{ "{:,}".format(report.goal_super_reach or 0).replace(',','.') }}</td>
-          <td>{{ goal_hit(report.reach or 0, report.goal_min_reach or 0, report.goal_ok_reach or 0, report.goal_super_reach or 0) }}</td>
-        </tr>
-        {% endif %}
-        {% if report.goal_super_ctr %}
-        <tr>
+        {% if report.goal_super_clients %}<tr>
+          <td>💬 Msgs Novos Clientes</td>
+          <td style="font-weight:800;font-size:.95rem">{{ report.new_messages or 0 }}</td>
+          <td>{{ report.goal_min_clients or 0 }}</td><td>{{ report.goal_ok_clients or 0 }}</td><td>{{ report.goal_super_clients or 0 }}</td>
+          <td>{{ goal_badge(report.new_messages or 0, report.goal_min_clients or 0, report.goal_ok_clients or 0, report.goal_super_clients or 0) }}</td>
+        </tr>{% endif %}
+        {% if report.goal_super_ctr %}<tr>
           <td>🖱️ CTR (%)</td>
-          <td class="result-cell">{{ "%.2f"|format(report.ctr or 0) }}%</td>
-          <td>{{ "%.1f"|format(report.goal_min_ctr or 0) }}%</td>
-          <td>{{ "%.1f"|format(report.goal_ok_ctr or 0) }}%</td>
-          <td>{{ "%.1f"|format(report.goal_super_ctr or 0) }}%</td>
-          <td>{{ goal_hit(report.ctr or 0, report.goal_min_ctr or 0, report.goal_ok_ctr or 0, report.goal_super_ctr or 0) }}</td>
-        </tr>
-        {% endif %}
-        {% if report.goal_max_cpr %}
-        <tr>
-          <td>💡 Custo/Resultado</td>
-          <td class="result-cell">R$ {{ "%.2f"|format(report.cost_per_result or 0) }}</td>
-          <td colspan="3" style="color:var(--gr);font-size:.82rem">Máximo: R$ {{ "%.2f"|format(report.goal_max_cpr) }}</td>
-          <td>{{ goal_hit(report.cost_per_result or 0, report.goal_max_cpr or 999, report.goal_max_cpr or 999, report.goal_max_cpr or 999, lower_better=true) }}</td>
-        </tr>
-        {% endif %}
+          <td style="font-weight:800;font-size:.95rem">{{ "%.2f"|format(report.ctr or 0) }}%</td>
+          <td>{{ "%.1f"|format(report.goal_min_ctr or 0) }}%</td><td>{{ "%.1f"|format(report.goal_ok_ctr or 0) }}%</td><td>{{ "%.1f"|format(report.goal_super_ctr or 0) }}%</td>
+          <td>{{ goal_badge(report.ctr or 0, report.goal_min_ctr or 0, report.goal_ok_ctr or 0, report.goal_super_ctr or 0) }}</td>
+        </tr>{% endif %}
+        {% if report.goal_super_cpc %}<tr>
+          <td>💡 CPC (R$)</td>
+          <td style="font-weight:800;font-size:.95rem">R$ {{ "%.2f"|format(report.cpc or 0) }}</td>
+          <td>R$ {{ "%.2f"|format(report.goal_min_cpc or 0) }}</td><td>R$ {{ "%.2f"|format(report.goal_ok_cpc or 0) }}</td><td>R$ {{ "%.2f"|format(report.goal_super_cpc or 0) }}</td>
+          <td>{{ goal_badge(report.cpc or 0, report.goal_min_cpc or 0, report.goal_ok_cpc or 0, report.goal_super_cpc or 0, lower=true) }}</td>
+        </tr>{% endif %}
       </tbody>
     </table>
   </div>
 </div>
 {% endif %}
 
+<!-- ANUNCIO DESTAQUE -->
+{% if report.best_ad_desc or report.best_ad_img %}
+<div class="card" style="margin-bottom:18px">
+  <div class="card-title">🥇 Anúncio com Maior Retorno</div>
+  <div style="display:grid;grid-template-columns:{% if report.best_ad_img %}1fr 2fr{% else %}1fr{% endif %};gap:20px;align-items:start">
+    {% if report.best_ad_img %}
+    <div class="best-post"><img src="{{ url_for('static', filename=report.best_ad_img) }}" onclick="window.open(this.src,'_blank')" title="Ampliar"/>
+    {% if report.best_ad_desc %}<div class="best-post-body"><div style="font-weight:600;font-size:.88rem">{{ report.best_ad_desc }}</div></div>{% endif %}</div>
+    {% else %}<div style="padding:20px;background:var(--gl);border-radius:var(--rl);font-size:.92rem;font-weight:500">📣 {{ report.best_ad_desc }}</div>{% endif %}
+  </div>
+</div>
+{% endif %}
 {% endif %}
 
-<!-- CHARTS (both types) -->
+<!-- CHARTS HISTORICO -->
 {% if history|length > 1 %}
-<div class="card" style="margin-bottom:20px">
-  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:12px;margin-bottom:16px">
-    <div style="font-size:.92rem;font-weight:700;color:var(--n)">📈 Evolução Histórica</div>
-    <div class="period-tabs">
+<div class="card" style="margin-bottom:18px">
+  <div style="display:flex;align-items:center;justify-content:space-between;flex-wrap:wrap;gap:10px;margin-bottom:16px">
+    <div class="card-title" style="margin:0">📈 Evolução Histórica</div>
+    <div class="ptabs no-print">
       <button class="ptab" onclick="setPeriod(3,this)">3 meses</button>
       <button class="ptab" onclick="setPeriod(6,this)">6 meses</button>
       <button class="ptab act" onclick="setPeriod(12,this)">1 ano</button>
     </div>
   </div>
-  {% if report.report_type == 'social' %}
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
-    <div><div style="font-size:.75rem;font-weight:700;color:var(--gr);text-transform:uppercase;margin-bottom:10px">👥 Seguidores</div><canvas id="chart1" height="200"></canvas></div>
-    <div><div style="font-size:.75rem;font-weight:700;color:var(--gr);text-transform:uppercase;margin-bottom:10px">👁️ Visitas no Perfil</div><canvas id="chart2" height="200"></canvas></div>
+  <div style="display:grid;grid-template-columns:1fr 1fr;gap:18px">
+    <div><div style="font-size:.72rem;font-weight:700;color:var(--gr);text-transform:uppercase;margin-bottom:8px">{{ 'Seguidores' if report.report_type=='social' else 'Msgs Novos Clientes' }}</div><canvas id="lc1" height="200"></canvas></div>
+    <div><div style="font-size:.72rem;font-weight:700;color:var(--gr);text-transform:uppercase;margin-bottom:8px">{{ 'Visitas no Perfil' if report.report_type=='social' else 'Impressões' }}</div><canvas id="lc2" height="200"></canvas></div>
   </div>
-  {% else %}
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px;margin-bottom:20px">
-    <div><div style="font-size:.75rem;font-weight:700;color:var(--gr);text-transform:uppercase;margin-bottom:10px">💬 Clientes WhatsApp</div><canvas id="chart1" height="200"></canvas></div>
-    <div><div style="font-size:.75rem;font-weight:700;color:var(--gr);text-transform:uppercase;margin-bottom:10px">📡 Alcance</div><canvas id="chart2" height="200"></canvas></div>
-  </div>
-  <div style="display:grid;grid-template-columns:1fr 1fr;gap:20px">
-    <div><div style="font-size:.75rem;font-weight:700;color:var(--gr);text-transform:uppercase;margin-bottom:10px">💰 Valor Investido (R$)</div><canvas id="chart3" height="180"></canvas></div>
-    <div><div style="font-size:.75rem;font-weight:700;color:var(--gr);text-transform:uppercase;margin-bottom:10px">🖱️ CTR (%)</div><canvas id="chart4" height="180"></canvas></div>
-  </div>
-  {% endif %}
 </div>
 {% endif %}
 
 <!-- NOTES -->
 {% if report.notes %}
-<div class="card" style="margin-bottom:20px">
-  <div style="font-size:.92rem;font-weight:700;color:var(--n);margin-bottom:10px">📝 Observações</div>
+<div class="card">
+  <div class="card-title">📝 Observações</div>
   <p style="font-size:.9rem;color:var(--gr);line-height:1.8;white-space:pre-line">{{ report.notes }}</p>
 </div>
 {% endif %}
 
 <script>
-const allH = {{ history | tojson }};
-const mpt = {{ months_pt | tojson }};
-const type = "{{ report.report_type }}";
-let c1,c2,c3,c4;
+const TYPE='{{ report.report_type }}';
+const PREV={{ prev|tojson if prev else 'null' }};
+const HIST={{ history|tojson }};
+const MPT={{ months_pt|tojson }};
 
-const lineOpts = (color)=>({
-  responsive:true,plugins:{legend:{display:false}},
-  scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:11}}},
-          x:{grid:{display:false},ticks:{font:{size:11}}}}
-});
-
-function buildCharts(data){
-  const labels=data.map(h=>mpt[h.month-1]+'/'+String(h.year).slice(2));
-  const d1=type==='social'?data.map(h=>h.followers||0):data.map(h=>h.new_whatsapp_clients||0);
-  const d2=type==='social'?data.map(h=>h.profile_visits||0):data.map(h=>h.reach||0);
-
-  if(c1)c1.destroy();
-  c1=new Chart(document.getElementById('chart1'),{
-    type:'line',data:{labels,datasets:[{data:d1,borderColor:'#1A2B6B',backgroundColor:'rgba(26,43,107,.08)',
-    borderWidth:2.5,pointRadius:5,pointBackgroundColor:'#FFC107',tension:.35,fill:true}]},options:lineOpts()});
-
-  if(c2)c2.destroy();
-  c2=new Chart(document.getElementById('chart2'),{
-    type:'bar',data:{labels,datasets:[{data:d2,backgroundColor:'rgba(255,193,7,.85)',borderRadius:8,borderSkipped:false}]},options:lineOpts()});
-
-  if(type==='trafego'){
-    if(c3)c3.destroy();
-    c3=new Chart(document.getElementById('chart3'),{
-      type:'bar',data:{labels,datasets:[{data:data.map(h=>h.invested_value||0),backgroundColor:'rgba(26,43,107,.7)',borderRadius:8,borderSkipped:false}]},options:lineOpts()});
-    if(c4)c4.destroy();
-    c4=new Chart(document.getElementById('chart4'),{
-      type:'line',data:{labels,datasets:[{data:data.map(h=>h.ctr||0),borderColor:'#22C55E',backgroundColor:'rgba(34,197,94,.08)',
-      borderWidth:2.5,pointRadius:5,pointBackgroundColor:'#22C55E',tension:.35,fill:true}]},options:lineOpts()});
-  }
+// DONUT helper
+function makeDonut(id, val, max, color){
+  const ctx=document.getElementById(id);if(!ctx)return;
+  const pct=max>0?Math.min(val/max,1):0;
+  new Chart(ctx,{type:'doughnut',data:{datasets:[{data:[pct,1-pct],backgroundColor:[color,'#F3F6FC'],borderWidth:0,hoverOffset:0}]},options:{responsive:false,cutout:'72%',plugins:{legend:{display:false},tooltip:{enabled:false}}}});
 }
 
-function setPeriod(n,btn){
-  document.querySelectorAll('.ptab').forEach(b=>b.classList.remove('act'));
-  btn.classList.add('act');
-  buildCharts(allH.slice(-n));
-}
+{% if report.report_type=='social' %}
+  const prevF=PREV?PREV.followers||1:1;
+  const prevV=PREV?PREV.profile_visits||1:1;
+  const prevM=PREV?PREV.ig_messages||1:1;
+  const maxF=Math.max({{ report.followers or 0 }},prevF);
+  const maxV=Math.max({{ report.profile_visits or 0 }},prevV);
+  const maxM=Math.max({{ report.ig_messages or 0 }},prevM);
+  makeDonut('d1',{{ report.followers or 0 }},maxF,'#1A2B6B');
+  makeDonut('d2',{{ report.profile_visits or 0 }},maxV,'#FFC107');
+  makeDonut('d3',{{ report.ig_messages or 0 }},maxM,'#8B5CF6');
+{% else %}
+  const gsc={{ report.goal_super_clients or 0 }};
+  const gsctr={{ report.goal_super_ctr or 0 }};
+  const maxImp=Math.max({{ report.impressions or 0 }},PREV?PREV.impressions||1:1);
+  makeDonut('d1',{{ report.new_messages or 0 }},gsc>0?gsc:Math.max({{ report.new_messages or 1 }},1),'#1A2B6B');
+  makeDonut('d2',{{ report.ctr or 0 }},gsctr>0?gsctr:Math.max({{ report.ctr or 1 }},1),'#22C55E');
+  makeDonut('d3',{{ report.impressions or 0 }},maxImp,'#FFC107');
+{% endif %}
 
-if(allH.length>1) buildCharts(allH.slice(-12));
+// Line charts
+let lc1,lc2;
+const lopts={responsive:true,plugins:{legend:{display:false}},scales:{y:{beginAtZero:true,grid:{color:'rgba(0,0,0,.04)'},ticks:{font:{size:11}}},x:{grid:{display:false},ticks:{font:{size:11}}}}};
+function buildLines(data){
+  const labels=data.map(h=>MPT[h.month-1]+'/'+String(h.year).slice(2));
+  const d1=TYPE==='social'?data.map(h=>h.followers||0):data.map(h=>h.new_messages||0);
+  const d2=TYPE==='social'?data.map(h=>h.profile_visits||0):data.map(h=>h.impressions||0);
+  if(lc1)lc1.destroy();
+  lc1=new Chart(document.getElementById('lc1'),{type:'line',data:{labels,datasets:[{data:d1,borderColor:'#1A2B6B',backgroundColor:'rgba(26,43,107,.07)',borderWidth:2.5,pointRadius:5,pointBackgroundColor:'#FFC107',tension:.35,fill:true}]},options:lopts});
+  if(lc2)lc2.destroy();
+  lc2=new Chart(document.getElementById('lc2'),{type:'bar',data:{labels,datasets:[{data:d2,backgroundColor:'rgba(255,193,7,.85)',borderRadius:8,borderSkipped:false}]},options:lopts});
+}
+function setPeriod(n,btn){document.querySelectorAll('.ptab').forEach(b=>b.classList.remove('act'));btn.classList.add('act');buildLines(HIST.slice(-n));}
+if(HIST.length>1)buildLines(HIST.slice(-12));
 </script>
 {% endblock %}
