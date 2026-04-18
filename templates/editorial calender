@@ -1,0 +1,79 @@
+{% extends 'base.html' %}
+{% block title %}Calendário — {{ client.name }}{% endblock %}{% block topbar_title %}Calendário Editorial{% endblock %}
+{% block extra_head %}<style>
+.cg{display:grid;grid-template-columns:repeat(7,1fr);gap:3px;margin-bottom:16px}
+.chd{text-align:center;font-size:.63rem;font-weight:700;color:var(--gr);text-transform:uppercase;padding:7px 0;background:#fff;border-radius:var(--r)}
+.cc{min-height:90px;background:#fff;border-radius:var(--r);border:1.5px solid var(--bd);padding:6px;cursor:pointer;transition:all .2s}
+.cc:hover{border-color:var(--y);box-shadow:0 4px 14px rgba(26,43,107,.1)}
+.cc.ec{background:var(--gl);cursor:default;border-color:transparent;opacity:.3}
+.cc.tc{border-color:var(--y);background:var(--yl)}
+.cn{font-size:.75rem;font-weight:700;color:var(--n);margin-bottom:3px}
+.ce{font-size:.6rem;border-radius:4px;padding:2px 5px;margin-bottom:2px;cursor:pointer;line-height:1.35}
+.ep{background:#1A2B6B;color:#fff}.er{background:#8B5CF6;color:#fff}.es{background:#F97316;color:#fff}.el{background:#EF4444;color:#fff}.ed{background:#22C55E;color:#fff}
+.tl{display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px}
+.td{display:inline-flex;align-items:center;gap:5px;font-size:.74rem;font-weight:600}
+@media(max-width:700px){.cg{grid-template-columns:repeat(4,1fr)}}
+</style>{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><h1>📅 Calendário Editorial</h1><p>{{ client.name }}{% if client.instagram %} · {{ client.instagram }}{% endif %}</p></div>
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    <a href="?month={{ month-1 if month > 1 else 12 }}&year={{ year if month > 1 else year-1 }}" class="btn btn-ghost">← Anterior</a>
+    <a href="?month={{ month+1 if month < 12 else 1 }}&year={{ year if month < 12 else year+1 }}" class="btn btn-ghost">Próximo →</a>
+    <a href="{{ url_for('client_detail', cid=client.id) }}" class="btn btn-ghost">← Cliente</a>
+  </div>
+</div>
+{% set mpt=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'] %}
+<div style="font-family:'Fraunces',serif;font-size:1.3rem;font-weight:700;color:var(--n);margin-bottom:12px">{{ mpt[month-1] }} {{ year }}</div>
+<div class="tl">
+  <span class="td"><span style="width:10px;height:10px;background:#1A2B6B;border-radius:3px;display:inline-block"></span>Feed/Post</span>
+  <span class="td"><span style="width:10px;height:10px;background:#8B5CF6;border-radius:3px;display:inline-block"></span>Reels</span>
+  <span class="td"><span style="width:10px;height:10px;background:#F97316;border-radius:3px;display:inline-block"></span>Story</span>
+  <span class="td"><span style="width:10px;height:10px;background:#EF4444;border-radius:3px;display:inline-block"></span>Live</span>
+  <span class="td"><span style="width:10px;height:10px;background:#22C55E;border-radius:3px;display:inline-block"></span>Publicado</span>
+</div>
+<div class="cg">
+  {% for dn in ['Dom','Seg','Ter','Qua','Qui','Sex','Sáb'] %}<div class="chd">{{ dn }}</div>{% endfor %}
+  {% set fw = (date(year,month,1).weekday()+1) % 7 %}
+  {% set max_d = [31,29 if year%4==0 and (year%100!=0 or year%400==0) else 28,31,30,31,30,31,31,30,31,30,31][month-1] %}
+  {% for i in range(42) %}
+    {% set dn = i - fw + 1 %}
+    {% set valid = dn >= 1 and dn <= max_d %}
+    {% if valid %}
+      {% set is_today = dn == today[8:10]|int and month == today[5:7]|int and year == today[0:4]|int %}
+      {% set day_entries = entries|selectattr('day','eq',dn)|list %}
+      <div class="cc {{ 'tc' if is_today }}" onclick="openDay({{ dn }})">
+        <div class="cn">{{ dn }}</div>
+        {% for e in day_entries %}
+        <div class="ce e{{ 'p' if e.content_type=='post' else ('r' if e.content_type=='reels' else ('s' if e.content_type=='story' else ('l' if e.content_type=='live' else 'p'))) }} {{ 'ed' if e.status=='done' }}" onclick="editE(event,'{{ e.id }}',{{ dn }},'{{ e.content_type }}','{{ e.content|replace("'","\'") }}','{{ e.status }}')">{{ e.content[:28] }}{% if e.content|length > 28 %}...{% endif %}</div>
+        {% endfor %}
+      </div>
+    {% else %}<div class="cc ec"></div>{% endif %}
+  {% endfor %}
+</div>
+
+<div class="modal-overlay" id="mday">
+  <div class="modal" style="max-width:420px">
+    <div class="modal-header"><div class="modal-title" id="mdt">Adicionar Conteúdo</div><button class="modal-close" onclick="closeModal('mday')">×</button></div>
+    <input type="hidden" id="eid" value=""/><input type="hidden" id="eday" value=""/>
+    <div class="form-group" style="margin-bottom:12px"><label>Tipo</label>
+      <select id="etype"><option value="post">📌 Feed/Post</option><option value="reels">🎬 Reels</option><option value="story">📸 Story</option><option value="live">🔴 Live</option></select>
+    </div>
+    <div class="form-group" style="margin-bottom:12px"><label>Descrição</label><textarea id="econt" rows="3" placeholder="Ex: Reels mostrando bastidores..."></textarea></div>
+    <div class="form-group" style="margin-bottom:16px"><label>Status</label>
+      <select id="estat"><option value="planned">📝 Planejado</option><option value="done">✅ Publicado</option></select>
+    </div>
+    <div style="display:flex;gap:8px">
+      <button class="btn btn-primary" style="flex:1;justify-content:center" onclick="saveE()">Salvar</button>
+      <button class="btn btn-red btn-sm" id="dbtn" onclick="deleteE()" style="display:none">🗑️</button>
+    </div>
+  </div>
+</div>
+<script>
+const CID='{{ client.id }}';const M={{ month }};const Y={{ year }};
+function openDay(d){document.getElementById('eid').value='';document.getElementById('eday').value=d;document.getElementById('econt').value='';document.getElementById('etype').value='post';document.getElementById('estat').value='planned';document.getElementById('mdt').textContent='Adicionar — Dia '+d;document.getElementById('dbtn').style.display='none';openModal('mday');}
+function editE(e,id,d,t,c,s){e.stopPropagation();document.getElementById('eid').value=id;document.getElementById('eday').value=d;document.getElementById('etype').value=t;document.getElementById('econt').value=c;document.getElementById('estat').value=s;document.getElementById('mdt').textContent='Editar — Dia '+d;document.getElementById('dbtn').style.display='inline-flex';openModal('mday');}
+async function saveE(){const id=document.getElementById('eid').value;const fd=new FormData();if(id)fd.append('id',id);fd.append('client_id',CID);fd.append('day',document.getElementById('eday').value);fd.append('month',M);fd.append('year',Y);fd.append('content_type',document.getElementById('etype').value);fd.append('content',document.getElementById('econt').value);fd.append('status',document.getElementById('estat').value);await fetch('/calendar/'+CID+'/save',{method:'POST',body:fd});closeModal('mday');location.reload();}
+async function deleteE(){const id=document.getElementById('eid').value;if(!id||!confirm('Excluir?'))return;await fetch('/calendar/'+CID+'/delete/'+id,{method:'POST'});closeModal('mday');location.reload();}
+</script>
+{% endblock %}
