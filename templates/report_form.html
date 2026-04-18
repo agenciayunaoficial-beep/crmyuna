@@ -1,225 +1,102 @@
 {% extends 'base.html' %}
-{% block title %}Novo Relatório — Yuna CRM{% endblock %}
-{% block topbar_title %}Novo Relatório{% endblock %}
-{% block extra_head %}
-<style>
-.goal-tier{display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px}
-.goal-card{border-radius:var(--r);padding:12px;border:2px solid}
-.goal-min{background:#FFF7ED;border-color:#FED7AA}
-.goal-ok{background:#F0FDF4;border-color:#BBF7D0}
-.goal-super{background:#EFF6FF;border-color:#BFDBFE}
-.goal-card .gl{font-size:.65rem;font-weight:800;letter-spacing:.5px;text-transform:uppercase;display:block;margin-bottom:5px}
-.goal-min .gl{color:#C2410C}
-.goal-ok .gl{color:#15803D}
-.goal-super .gl{color:#1D4ED8}
-.goal-card input{border-color:transparent;background:rgba(255,255,255,.8);font-weight:700;font-size:.95rem;padding:7px 10px}
-.msec{background:var(--gl);border-radius:var(--rl);padding:18px;margin-bottom:14px;border:1.5px solid var(--bd)}
-.msec-title{font-size:.85rem;font-weight:700;color:var(--n);margin-bottom:14px}
-.glabel{font-size:.75rem;font-weight:700;color:var(--gr);margin:12px 0 7px;text-transform:uppercase;letter-spacing:.5px}
-</style>
-{% endblock %}
+{% block title %}Novo Relatório{% endblock %}{% block topbar_title %}Novo Relatório{% endblock %}
+{% block extra_head %}<style>
+.mbox{background:var(--gl);border-radius:var(--rl);padding:18px;margin-bottom:14px;border:1.5px solid var(--bd)}
+.mbox-title{font-size:.86rem;font-weight:700;color:var(--n);margin-bottom:14px}
+</style>{% endblock %}
 {% block content %}
 <div class="page-header">
-  <div><h1>Novo Relatório</h1><p>Cadastre métricas e metas do cliente</p></div>
+  <div><h1>Novo Relatório</h1><p>Cadastre métricas mensais do cliente</p></div>
   <a href="{{ url_for('reports') }}" class="btn btn-ghost">← Voltar</a>
 </div>
-
 <form method="POST" enctype="multipart/form-data">
-  <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;align-items:start">
-    <div>
-
-      <!-- INFO GERAL -->
-      <div class="card" style="margin-bottom:14px">
-        <div class="msec-title">📋 Informações Gerais</div>
-        <div class="form-grid">
-          <div class="form-group full">
-            <label>Cliente *</label>
-            <select name="client_id" id="client_sel" required onchange="fetchPlanType(this.value)">
-              <option value="">Selecionar cliente...</option>
-              {% for c in clients %}
-              <option value="{{ c.id }}" data-type="{{ c.plan_type }}" {{ 'selected' if request.args.get('client')==c.id else '' }}>{{ c.name }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Tipo *</label>
-            <select name="plan_type" id="plan_type_sel" onchange="setType(this.value)">
-              <option value="social">📱 Social Media</option>
-              <option value="trafego">📣 Tráfego Pago</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Mês *</label>
-            <select name="month">
-              {% for i, m in enumerate(['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']) %}
-              <option value="{{ i+1 }}" {{ 'selected' if (i+1)==now_month else '' }}>{{ m }}</option>
-              {% endfor %}
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Ano *</label>
-            <input type="number" name="year" value="{{ now_year }}" min="2023" max="2030"/>
-          </div>
-        </div>
-      </div>
-
-      <!-- SOCIAL MEDIA -->
-      <div id="section-social">
-        <div class="msec">
-          <div class="msec-title">📊 Métricas — Social Media</div>
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Total de Seguidores</label>
-              <input type="number" name="followers" placeholder="0" min="0"/>
-            </div>
-            <div class="form-group">
-              <label>Visitas no Perfil</label>
-              <input type="number" name="profile_visits" placeholder="0" min="0"/>
-            </div>
-          </div>
-        </div>
-        <div class="msec">
-          <div class="msec-title">🏆 Posts com Melhor Performance</div>
-          {% for n, medal in [('1','🥇'),('2','🥈'),('3','🥉')] %}
-          <div style="background:#fff;border-radius:var(--r);padding:14px;border:1.5px solid var(--bd);margin-bottom:10px">
-            <div style="font-size:.75rem;font-weight:700;color:var(--n);margin-bottom:8px">{{ medal }} {{ n }}º Melhor Post</div>
-            <input type="text" name="top_post{{ n }}" placeholder="Ex: Reels produto — 5.200 views" style="margin-bottom:8px"/>
-            <div style="font-size:.7rem;color:var(--gr);margin-bottom:5px">📸 Anexar print (opcional)</div>
-            <input type="file" name="img_post{{ n }}" accept="image/*" style="border:none;background:none;padding:0;font-size:.8rem"/>
-            <div id="prev{{ n }}" style="margin-top:6px"></div>
-          </div>
-          {% endfor %}
-        </div>
-      </div>
-
-      <!-- TRAFEGO -->
-      <div id="section-trafego" style="display:none">
-        <div class="msec">
-          <div class="msec-title">📊 Métricas — Tráfego Pago</div>
-          <div class="form-grid">
-            <div class="form-group">
-              <label>Novos Clientes WhatsApp</label>
-              <input type="number" name="new_whatsapp_clients" placeholder="0" min="0"/>
-            </div>
-            <div class="form-group">
-              <label>Alcance</label>
-              <input type="number" name="reach" placeholder="0" min="0"/>
-            </div>
-            <div class="form-group">
-              <label>Custo por Resultado (R$)</label>
-              <input type="number" name="cost_per_result" placeholder="0.00" step="0.01"/>
-            </div>
-            <div class="form-group">
-              <label>Valor Investido (R$)</label>
-              <input type="number" name="invested_value" placeholder="0.00" step="0.01"/>
-            </div>
-            <div class="form-group">
-              <label>CTR (%)</label>
-              <input type="number" name="ctr" placeholder="0.00" step="0.01"/>
-            </div>
-          </div>
-        </div>
-      </div>
-
-      <!-- NOTAS -->
-      <div class="card">
-        <div class="msec-title">📝 Observações</div>
-        <textarea name="notes" placeholder="Conquistas do mês, pontos de melhoria, próximos passos..." style="min-height:100px"></textarea>
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:18px;align-items:start">
+  <div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-title">📋 Informações</div>
+      <div class="form-grid">
+        <div class="form-group full"><label>Cliente *</label><select name="client_id" id="csel" required onchange="autoType(this.value)"><option value="">Selecionar...</option>{% for c in clients %}<option value="{{ c.id }}" data-type="{{ c.plan_type }}" {{ 'selected' if request.args.get('client')==c.id }}>{{ c.name }}</option>{% endfor %}</select></div>
+        <div class="form-group"><label>Tipo *</label><select name="plan_type" id="ptype" onchange="setType(this.value)"><option value="social">📱 Social Media</option><option value="trafego">📣 Tráfego Pago</option></select></div>
+        <div class="form-group"><label>Mês *</label><select name="month">{% for i,m in enumerate(['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro']) %}<option value="{{ i+1 }}" {{ 'selected' if (i+1)==now_month }}>{{ m }}</option>{% endfor %}</select></div>
+        <div class="form-group"><label>Ano *</label><input type="number" name="year" value="{{ now_year }}" min="2024" max="2030"/></div>
       </div>
     </div>
-
-    <!-- METAS 3 NIVEIS -->
-    <div>
-      <div class="card" style="margin-bottom:14px;position:sticky;top:80px">
-        <div style="font-size:.92rem;font-weight:700;color:var(--n);margin-bottom:6px">🎯 Metas do Mês</div>
-        <div style="font-size:.75rem;color:var(--gr);margin-bottom:14px">Defina os 3 níveis para este cliente</div>
-
-        <!-- LEGENDA -->
-        <div style="display:flex;flex-direction:column;gap:5px;margin-bottom:16px;padding:10px;background:var(--gl);border-radius:var(--r)">
-          <div style="font-size:.72rem;font-weight:700;color:#C2410C">🟠 Mínima — resultado aceitável</div>
-          <div style="font-size:.72rem;font-weight:700;color:#15803D">🟢 Aceitável — bom resultado</div>
-          <div style="font-size:.72rem;font-weight:700;color:#1D4ED8">🔵 Super Meta — resultado excelente</div>
+    <div id="sec-social">
+      <div class="mbox"><div class="mbox-title">📊 Métricas — Social Media</div>
+        <div class="form-grid">
+          <div class="form-group"><label>Seguidores Totais</label><input type="number" name="followers" placeholder="0"/></div>
+          <div class="form-group"><label>Visitas no Perfil</label><input type="number" name="profile_visits" placeholder="0"/></div>
+          <div class="form-group full"><label>Mensagens no Instagram</label><input type="number" name="ig_messages" placeholder="0"/></div>
         </div>
-
-        <!-- SOCIAL METAS -->
-        <div id="metas-social">
-          <div class="glabel">👥 Seguidores</div>
-          <div class="goal-tier" style="margin-bottom:12px">
-            <div class="goal-card goal-min"><span class="gl">Mínima</span><input type="number" name="goal_min_followers" placeholder="0"/></div>
-            <div class="goal-card goal-ok"><span class="gl">Aceitável</span><input type="number" name="goal_ok_followers" placeholder="0"/></div>
-            <div class="goal-card goal-super"><span class="gl">Super</span><input type="number" name="goal_super_followers" placeholder="0"/></div>
-          </div>
-          <div class="glabel">👁️ Visitas no Perfil</div>
-          <div class="goal-tier">
-            <div class="goal-card goal-min"><span class="gl">Mínima</span><input type="number" name="goal_min_visits" placeholder="0"/></div>
-            <div class="goal-card goal-ok"><span class="gl">Aceitável</span><input type="number" name="goal_ok_visits" placeholder="0"/></div>
-            <div class="goal-card goal-super"><span class="gl">Super</span><input type="number" name="goal_super_visits" placeholder="0"/></div>
-          </div>
-        </div>
-
-        <!-- TRAFEGO METAS -->
-        <div id="metas-trafego" style="display:none">
-          <div class="glabel">💬 Novos Clientes WhatsApp</div>
-          <div class="goal-tier" style="margin-bottom:12px">
-            <div class="goal-card goal-min"><span class="gl">Mínima</span><input type="number" name="goal_min_clients" placeholder="0"/></div>
-            <div class="goal-card goal-ok"><span class="gl">Aceitável</span><input type="number" name="goal_ok_clients" placeholder="0"/></div>
-            <div class="goal-card goal-super"><span class="gl">Super</span><input type="number" name="goal_super_clients" placeholder="0"/></div>
-          </div>
-          <div class="glabel">📡 Alcance</div>
-          <div class="goal-tier" style="margin-bottom:12px">
-            <div class="goal-card goal-min"><span class="gl">Mínima</span><input type="number" name="goal_min_reach" placeholder="0"/></div>
-            <div class="goal-card goal-ok"><span class="gl">Aceitável</span><input type="number" name="goal_ok_reach" placeholder="0"/></div>
-            <div class="goal-card goal-super"><span class="gl">Super</span><input type="number" name="goal_super_reach" placeholder="0"/></div>
-          </div>
-          <div class="glabel">🖱️ CTR (%)</div>
-          <div class="goal-tier" style="margin-bottom:12px">
-            <div class="goal-card goal-min"><span class="gl">Mínima</span><input type="number" name="goal_min_ctr" placeholder="0.0" step="0.1"/></div>
-            <div class="goal-card goal-ok"><span class="gl">Aceitável</span><input type="number" name="goal_ok_ctr" placeholder="0.0" step="0.1"/></div>
-            <div class="goal-card goal-super"><span class="gl">Super</span><input type="number" name="goal_super_ctr" placeholder="0.0" step="0.1"/></div>
-          </div>
-          <div class="glabel">💡 Custo/Resultado Máximo (R$)</div>
-          <div class="form-group">
-            <input type="number" name="goal_max_cpr" placeholder="Ex: 5.00" step="0.01"/>
-            <span class="form-hint">Quanto mais baixo, melhor</span>
-          </div>
-        </div>
-
-        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:13px;margin-top:18px">
-          📊 Salvar Relatório
-        </button>
       </div>
+      <div class="mbox"><div class="mbox-title">🏆 Post com Maior Engajamento</div>
+        <div class="form-group" style="margin-bottom:10px"><label>Descrição do Post</label><input type="text" name="top_post_desc" placeholder="Ex: Reels produto X — 8.500 views"/></div>
+        <div class="form-group"><label>📸 Print do Post (Upload)</label><input type="file" name="top_post_img" accept="image/*"/></div>
+      </div>
+    </div>
+    <div id="sec-trafego" style="display:none">
+      <div class="mbox"><div class="mbox-title">📊 Métricas — Tráfego Pago</div>
+        <div class="form-grid">
+          <div class="form-group"><label>Impressões</label><input type="number" name="impressions" placeholder="0"/></div>
+          <div class="form-group"><label>Msgs Novos Clientes</label><input type="number" name="new_messages" placeholder="0"/></div>
+          <div class="form-group"><label>CTR (%)</label><input type="number" name="ctr" placeholder="0.00" step="0.01"/></div>
+          <div class="form-group"><label>CPC (R$)</label><input type="number" name="cpc" placeholder="0.00" step="0.01"/></div>
+          <div class="form-group full"><label>Frequência Média</label><input type="number" name="avg_frequency" placeholder="0.00" step="0.01"/></div>
+        </div>
+      </div>
+      <div class="mbox"><div class="mbox-title">🥇 Anúncio com Maior Retorno</div>
+        <div class="form-group" style="margin-bottom:10px"><label>Descrição do Anúncio</label><input type="text" name="best_ad_desc" placeholder="Ex: Vídeo produto X — 150 cliques"/></div>
+        <div class="form-group"><label>📸 Print do Anúncio (Upload)</label><input type="file" name="best_ad_img" accept="image/*"/></div>
+      </div>
+    </div>
+    <div class="card"><div class="card-title">📝 Observações</div><textarea name="notes" placeholder="Análise do mês, destaques, próximos passos..." style="min-height:100px"></textarea></div>
+  </div>
+  <div>
+    <div class="card" style="position:sticky;top:70px">
+      <div class="card-title">🎯 Metas — Tráfego Pago</div>
+      <div style="display:flex;flex-direction:column;gap:4px;margin-bottom:14px;padding:10px;background:var(--gl);border-radius:var(--r)">
+        <div style="font-size:.7rem;font-weight:700;color:#C2410C">🟠 Mínima — resultado aceitável</div>
+        <div style="font-size:.7rem;font-weight:700;color:#15803D">🟢 Aceitável — bom resultado</div>
+        <div style="font-size:.7rem;font-weight:700;color:#1D4ED8">🔵 Super Meta — excelente!</div>
+      </div>
+      <div id="metas-trafego">
+        <div style="font-size:.72rem;font-weight:700;color:var(--gr);text-transform:uppercase;margin-bottom:7px">💬 Msgs Novos Clientes</div>
+        <div class="tier-input-grid" style="margin-bottom:12px">
+          <div class="tier-box tb-min"><label>Mínima</label><input type="number" name="goal_min_clients" placeholder="0"/></div>
+          <div class="tier-box tb-ok"><label>Aceitável</label><input type="number" name="goal_ok_clients" placeholder="0"/></div>
+          <div class="tier-box tb-super"><label>Super</label><input type="number" name="goal_super_clients" placeholder="0"/></div>
+        </div>
+        <div style="font-size:.72rem;font-weight:700;color:var(--gr);text-transform:uppercase;margin-bottom:7px">🖱️ CTR (%)</div>
+        <div class="tier-input-grid" style="margin-bottom:12px">
+          <div class="tier-box tb-min"><label>Mínima</label><input type="number" name="goal_min_ctr" step="0.1" placeholder="0.0"/></div>
+          <div class="tier-box tb-ok"><label>Aceitável</label><input type="number" name="goal_ok_ctr" step="0.1" placeholder="0.0"/></div>
+          <div class="tier-box tb-super"><label>Super</label><input type="number" name="goal_super_ctr" step="0.1" placeholder="0.0"/></div>
+        </div>
+        <div style="font-size:.72rem;font-weight:700;color:var(--gr);text-transform:uppercase;margin-bottom:7px">💡 CPC (R$) — menor é melhor</div>
+        <div class="tier-input-grid">
+          <div class="tier-box tb-super"><label>Ótimo</label><input type="number" name="goal_min_cpc" step="0.01" placeholder="0.00"/></div>
+          <div class="tier-box tb-ok"><label>Aceitável</label><input type="number" name="goal_ok_cpc" step="0.01" placeholder="0.00"/></div>
+          <div class="tier-box tb-min"><label>Máximo</label><input type="number" name="goal_super_cpc" step="0.01" placeholder="0.00"/></div>
+        </div>
+      </div>
+      <div id="metas-social" style="display:none"><div style="padding:16px;text-align:center;color:var(--gr);font-size:.82rem">Metas de 3 níveis disponíveis apenas para Tráfego Pago.</div></div>
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:13px;margin-top:18px">📊 Salvar Relatório</button>
     </div>
   </div>
+</div>
 </form>
-
 <script>
-const urlClient = new URLSearchParams(window.location.search).get('client');
-if(urlClient){ document.getElementById('client_sel').value=urlClient; fetchPlanType(urlClient); }
-
-function fetchPlanType(cid){
-  const opt = document.querySelector(`#client_sel option[value="${cid}"]`);
-  if(opt) setType(opt.dataset.type==='trafego'?'trafego':'social');
+const csel=document.getElementById('csel');
+const uc=new URLSearchParams(location.search).get('client');
+if(uc){csel.value=uc;autoType(uc);}
+function autoType(cid){const o=csel.querySelector('option[value="'+cid+'"]');if(o&&o.dataset.type)setType(o.dataset.type==='trafego'?'trafego':'social');}
+function setType(t){
+  document.getElementById('ptype').value=t;
+  document.getElementById('sec-social').style.display=t==='social'?'block':'none';
+  document.getElementById('sec-trafego').style.display=t==='trafego'?'block':'none';
+  document.getElementById('metas-trafego').style.display=t==='trafego'?'block':'none';
+  document.getElementById('metas-social').style.display=t==='social'?'block':'none';
 }
-function setType(type){
-  document.getElementById('plan_type_sel').value=type;
-  document.getElementById('section-social').style.display=type==='social'?'block':'none';
-  document.getElementById('section-trafego').style.display=type==='trafego'?'block':'none';
-  document.getElementById('metas-social').style.display=type==='social'?'block':'none';
-  document.getElementById('metas-trafego').style.display=type==='trafego'?'block':'none';
-}
-document.getElementById('plan_type_sel').addEventListener('change',function(){setType(this.value)});
-[1,2,3].forEach(n=>{
-  const inp=document.querySelector(`input[name="img_post${n}"]`);
-  const prev=document.getElementById(`prev${n}`);
-  if(inp) inp.addEventListener('change',function(){
-    prev.innerHTML='';
-    if(this.files&&this.files[0]){
-      const img=document.createElement('img');
-      img.src=URL.createObjectURL(this.files[0]);
-      img.style='max-height:110px;border-radius:8px;object-fit:cover;border:2px solid var(--y)';
-      prev.appendChild(img);
-    }
-  });
-});
+document.getElementById('ptype').addEventListener('change',function(){setType(this.value)});
 </script>
 {% endblock %}
