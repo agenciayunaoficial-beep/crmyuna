@@ -1,123 +1,84 @@
 {% extends 'base.html' %}
-{% block title %}{{ 'Editar' if client else 'Novo' }} Cliente — Yuna CRM{% endblock %}
+{% block title %}{{ 'Editar' if client else 'Novo' }} Cliente{% endblock %}
 {% block topbar_title %}{{ 'Editar Cliente' if client else 'Novo Cliente' }}{% endblock %}
 {% block content %}
 <div class="page-header">
-  <div>
-    <h1>{{ 'Editar Cliente' if client else 'Novo Cliente' }}</h1>
-    <p>{{ 'Atualize as informações do cliente' if client else 'Preencha os dados do novo cliente' }}</p>
-  </div>
+  <div><h1>{{ 'Editar Cliente' if client else 'Novo Cliente' }}</h1></div>
   <a href="{{ url_for('clients') }}" class="btn btn-ghost">← Voltar</a>
 </div>
-
-<form method="POST">
-  <div style="display:grid;grid-template-columns:2fr 1fr;gap:20px;align-items:start">
-    <div>
-      <div class="card" style="margin-bottom:16px">
-        <div style="font-size:.92rem;font-weight:700;color:var(--n);margin-bottom:18px">📋 Dados do Cliente</div>
-        <div class="form-grid">
-          <div class="form-group full">
-            <label>Nome da Empresa *</label>
-            <input type="text" name="name" value="{{ client.name if client else '' }}" required placeholder="Nome da empresa ou cliente"/>
-          </div>
-          <div class="form-group full">
-            <label>Instagram</label>
-            <input type="text" name="instagram" value="{{ client.instagram if client else '' }}" placeholder="@perfil"/>
-          </div>
-          <input type="hidden" name="whatsapp" value="{{ client.whatsapp if client else '' }}"/>
-          <input type="hidden" name="email" value="{{ client.email if client else '' }}"/>
-          <div class="form-group full">
-            <label>Observações</label>
-            <textarea name="notes" placeholder="Anotações sobre o cliente...">{{ client.notes if client else '' }}</textarea>
-          </div>
-        </div>
-      </div>
-
-      <div class="card">
-        <div style="font-size:.92rem;font-weight:700;color:var(--n);margin-bottom:18px">💼 Plano Contratado</div>
-        <div class="form-grid">
-          <div class="form-group">
-            <label>Tipo de Serviço</label>
-            <select name="plan_type" id="plan_type">
-              <option value="social" {{ 'selected' if client and client.plan_type=='social' else '' }}>Social Media</option>
-              <option value="trafego" {{ 'selected' if client and client.plan_type=='trafego' else '' }}>Tráfego Pago</option>
-              <option value="site" {{ 'selected' if client and client.plan_type=='site' else '' }}>Criação de Site</option>
-              <option value="disparo" {{ 'selected' if client and client.plan_type=='disparo' else '' }}>Disparo + Google</option>
-              <option value="combo" {{ 'selected' if client and client.plan_type=='combo' else '' }}>Combo</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Plano</label>
-            <select name="plan">
-              <option value="Light" {{ 'selected' if client and client.plan=='Light' else '' }}>Light (1º mês)</option>
-              <option value="Semestral" {{ 'selected' if client and client.plan=='Semestral' else '' }}>Semestral (6 meses)</option>
-              <option value="Anual" {{ 'selected' if client and client.plan=='Anual' else '' }}>Anual (12 meses)</option>
-              <option value="Avulso" {{ 'selected' if client and client.plan=='Avulso' else '' }}>Avulso</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Valor Mensal (R$)</label>
-            <input type="number" name="value" value="{{ client.value if client else '' }}" step="0.01" placeholder="0,00" required/>
-          </div>
-          <div class="form-group">
-            <label>Dia de Vencimento</label>
-            <input type="number" name="payment_day" min="1" max="31" value="{{ client.payment_day if client else '10' }}"/>
-          </div>
-          <div class="form-group">
-            <label>Forma de Pagamento</label>
-            <select name="payment_method">
-              <option value="pix" {{ 'selected' if client and client.payment_method=='pix' else '' }}>PIX</option>
-              <option value="credito" {{ 'selected' if client and client.payment_method=='credito' else '' }}>Cartão de Crédito</option>
-            </select>
-          </div>
-          <div class="form-group">
-            <label>Data de Início</label>
-            <input type="date" name="start_date" value="{{ client.start_date if client else '' }}"/>
-          </div>
-        </div>
+<form method="POST" enctype="multipart/form-data">
+<div style="display:grid;grid-template-columns:2fr 1fr;gap:18px;align-items:start">
+  <div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-title">📋 Dados da Empresa</div>
+      <div class="form-grid">
+        <div class="form-group full"><label>Nome da Empresa *</label><input type="text" name="name" value="{{ client.name if client else '' }}" required placeholder="Nome da empresa"/></div>
+        <div class="form-group full"><label>Instagram</label><input type="text" name="instagram" value="{{ client.instagram if client else '' }}" placeholder="@perfil"/></div>
+        <div class="form-group full"><label>Observações</label><textarea name="notes" placeholder="Notas...">{{ client.notes if client else '' }}</textarea></div>
+        <div class="form-group full"><label>Contrato Assinado (PDF/Imagem)</label><input type="file" name="contract_file" accept=".pdf,.png,.jpg,.jpeg"/>{% if client and client.contract_file %}<div style="font-size:.72rem;color:#22C55E;margin-top:4px">✅ Contrato anexado</div>{% endif %}</div>
       </div>
     </div>
-
-    <div>
-      <div class="card" style="margin-bottom:16px">
-        <div style="font-size:.92rem;font-weight:700;color:var(--n);margin-bottom:18px">📌 Status</div>
-        <div class="form-group">
-          <label>Status do Cliente</label>
-          <select name="status">
-            <option value="active" {{ 'selected' if not client or client.status=='active' else '' }}>✅ Ativo</option>
-            <option value="paused" {{ 'selected' if client and client.status=='paused' else '' }}>⏸️ Pausado</option>
-            <option value="cancelled" {{ 'selected' if client and client.status=='cancelled' else '' }}>❌ Cancelado</option>
+    <div class="card">
+      <div class="card-title">💼 Plano e Pagamento</div>
+      <div class="form-grid">
+        <div class="form-group"><label>Tipo de Serviço *</label>
+          <select name="plan_type" id="pt" onchange="updatePlans()">
+            <option value="social" {{ 'selected' if client and client.plan_type=='social' }}>📱 Social Media</option>
+            <option value="trafego" {{ 'selected' if client and client.plan_type=='trafego' }}>📣 Tráfego Pago</option>
+            <option value="site" {{ 'selected' if client and client.plan_type=='site' }}>🌐 Site</option>
+            <option value="disparo" {{ 'selected' if client and client.plan_type=='disparo' }}>📲 Disparo+Google</option>
+            <option value="combo" {{ 'selected' if client and client.plan_type=='combo' }}>🎯 Combo</option>
           </select>
         </div>
-      </div>
-
-      <div class="card" style="background:var(--yl);border-color:rgba(255,193,7,.3)">
-        <div style="font-size:.82rem;color:var(--nd);line-height:1.7">
-          💡 <strong>Dica:</strong> Ao cadastrar um novo cliente, a primeira cobrança é gerada automaticamente no dia de vencimento escolhido.
+        <div class="form-group"><label>Plano *</label><select name="plan" id="ps"><option value="">Selecionar...</option></select></div>
+        <div class="form-group"><label>Valor Mensal (R$)</label><input type="number" name="value" id="vi" value="{{ client.value if client else '' }}" step="0.01" placeholder="0,00"/></div>
+        <div class="form-group"><label>Dia de Vencimento</label><input type="number" name="payment_day" min="1" max="31" value="{{ client.payment_day if client else '10' }}"/></div>
+        <div class="form-group"><label>Forma de Pagamento</label>
+          <select name="payment_method">
+            <option value="pix" {{ 'selected' if not client or client.payment_method=='pix' }}>PIX</option>
+            <option value="credito" {{ 'selected' if client and client.payment_method=='credito' }}>Cartão de Crédito</option>
+          </select>
         </div>
-      </div>
-
-      <div style="margin-top:16px;display:flex;flex-direction:column;gap:10px">
-        <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;padding:13px">
-          {{ '💾 Salvar Alterações' if client else '✅ Cadastrar Cliente' }}
-        </button>
-        {% if client %}
-        <button type="button" class="btn btn-red" style="width:100%;justify-content:center" onclick="confirmDelete()">🗑️ Excluir Cliente</button>
-        {% endif %}
+        <div class="form-group"><label>Início do Contrato</label><input type="date" name="start_date" value="{{ client.start_date if client else '' }}"/></div>
+        <div class="form-group full" style="background:var(--yl);border-radius:var(--r);padding:14px;border:1.5px solid rgba(255,193,7,.3)">
+          <label>Meses Pré-pagos (desconta automaticamente)</label>
+          <input type="number" name="prepaid_months" min="0" max="24" value="{{ client.prepaid_months if client else '0' }}"/>
+          <span class="form-hint">Ex: cliente pagou 3 meses adiantado → coloque 3</span>
+        </div>
       </div>
     </div>
   </div>
+  <div>
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-title">📌 Status</div>
+      <div class="form-group"><label>Status</label>
+        <select name="status">
+          <option value="active" {{ 'selected' if not client or client.status=='active' }}>✅ Ativo</option>
+          <option value="paused" {{ 'selected' if client and client.status=='paused' }}>⏸️ Pausado</option>
+          <option value="cancelled" {{ 'selected' if client and client.status=='cancelled' }}>❌ Cancelado</option>
+        </select>
+      </div>
+    </div>
+    <div class="card" style="background:var(--nd);border:none;color:#fff;margin-bottom:14px">
+      <div style="font-size:.78rem;font-weight:700;opacity:.7;margin-bottom:10px">💡 Tabela de Preços</div>
+      <div style="font-size:.72rem;line-height:1.9;opacity:.75"><strong>Tráfego Pago:</strong><br/>R$100/semana · R$200/30dias<br/>R$599,90 trimestral<br/>R$600 semestral · R$500 anual<br/><br/><strong>Social Media:</strong><br/>R$300 — 15 posts<br/>R$1.000 semestral · R$700 anual<br/><br/><strong>Outros:</strong><br/>Site a partir de R$500<br/>Disparo+Google R$300/mês</div>
+    </div>
+    <button type="submit" class="btn btn-primary btn-lg" style="width:100%;justify-content:center">{{ '💾 Salvar' if client else '✅ Cadastrar' }}</button>
+    {% if client %}<button type="button" class="btn btn-red" style="width:100%;justify-content:center;margin-top:10px" onclick="confirmDel()">🗑️ Excluir Cliente</button>{% endif %}
+  </div>
+</div>
 </form>
-
-{% if client %}
-<!-- Delete form OUTSIDE main form (avoids nested form bug) -->
-<form id="delete-form" method="POST" action="{{ url_for('delete_client', cid=client.id) }}" style="display:none"></form>
+{% if client %}<form id="delf" method="POST" action="{{ url_for('delete_client', cid=client.id) }}" style="display:none"></form>
+<script>function confirmDel(){if(confirm('⚠️ Excluir cliente e todos os dados?'))document.getElementById('delf').submit();}</script>{% endif %}
 <script>
-function confirmDelete(){
-  if(confirm('⚠️ Tem certeza?\n\nTodos os dados do cliente (cobranças, gravações, relatórios) serão apagados permanentemente.')){
-    document.getElementById('delete-form').submit();
-  }
+const P={social:[['15 Posts (Feed+Reels)',300],['Semestral',1000],['Anual',700]],trafego:[['Por Semana',100],['30 Dias',200],['Trimestral',599.90],['Semestral (mensal)',600],['Anual (mensal)',500]],site:[['Personalizado',500]],disparo:[['Mensal',300]],combo:[['Personalizado',0]]};
+function updatePlans(){
+  const t=document.getElementById('pt').value,s=document.getElementById('ps'),v=document.getElementById('vi');
+  s.innerHTML='<option value="">Selecionar...</option>';
+  (P[t]||[]).forEach(([n,p])=>{const o=document.createElement('option');o.value=n;o.textContent=n+' — R$'+p.toFixed(2).replace('.',',');o.dataset.v=p;s.appendChild(o);});
+  s.onchange=function(){const o=this.selectedOptions[0];if(o&&o.dataset.v)v.value=o.dataset.v;};
 }
+updatePlans();
+{% if client %}document.getElementById('ps').value='{{ client.plan }}';{% endif %}
 </script>
-{% endif %}
 {% endblock %}
