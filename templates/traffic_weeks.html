@@ -1,0 +1,43 @@
+{% extends 'base.html' %}
+{% block title %}Semanas de Tráfego — {{ client.name }}{% endblock %}{% block topbar_title %}Semanas de Tráfego{% endblock %}
+{% block extra_head %}<style>
+.wg{display:grid;grid-template-columns:repeat(2,1fr);gap:16px}
+.vrow{display:flex;align-items:center;gap:8px;padding:8px;background:var(--gl);border-radius:var(--r);margin-bottom:8px;border:1.5px solid var(--bd)}
+.vnum{width:26px;height:26px;border-radius:50%;background:var(--y);color:var(--nd);font-weight:800;font-size:.72rem;display:flex;align-items:center;justify-content:center;flex-shrink:0}
+.vinp{border:none;background:none;flex:1;font-size:.84rem;outline:none;color:var(--tx)}
+@media(max-width:800px){.wg{grid-template-columns:1fr}}
+</style>{% endblock %}
+{% block content %}
+<div class="page-header">
+  <div><h1>📣 Semanas de Tráfego</h1><p>{{ client.name }} — Vídeos para anúncios por semana (máx. 5 cada)</p></div>
+  <div style="display:flex;gap:8px">
+    <a href="?month={{ month-1 if month > 1 else 12 }}&year={{ year if month > 1 else year-1 }}" class="btn btn-ghost">← Anterior</a>
+    <a href="?month={{ month+1 if month < 12 else 1 }}&year={{ year if month < 12 else year+1 }}" class="btn btn-ghost">Próximo →</a>
+    <a href="{{ url_for('client_detail', cid=client.id) }}" class="btn btn-ghost">← Cliente</a>
+  </div>
+</div>
+{% set mpt=['Janeiro','Fevereiro','Março','Abril','Maio','Junho','Julho','Agosto','Setembro','Outubro','Novembro','Dezembro'] %}
+<div style="font-family:'Fraunces',serif;font-size:1.3rem;font-weight:700;color:var(--n);margin-bottom:18px">{{ mpt[month-1] }} {{ year }}</div>
+<div class="wg" id="wgrid"></div>
+<script>
+const CID='{{ client.id }}';const M={{ month }};const Y={{ year }};
+const WDATA={{ weeks|map(attribute='videos')|list|tojson }};
+const WEEKS={{ weeks|map(attribute='week')|list|tojson }};
+function getVids(wn){const idx=WEEKS.indexOf(wn);if(idx<0)return [];try{return JSON.parse(WDATA[idx])||[];}catch{return [];}}
+function renderWeeks(){
+  const g=document.getElementById('wgrid');g.innerHTML='';
+  for(let w=1;w<=4;w++){
+    const vids=getVids(w);
+    let rows='';for(let i=0;i<5;i++)rows+='<div class="vrow"><div class="vnum">'+( i+1)+'</div><input class="vinp" id="w'+w+'v'+i+'" type="text" value="'+(vids[i]||'')+'" placeholder="Nome ou link do vídeo '+(i+1)+'"/></div>';
+    g.innerHTML+='<div class="card" style="padding:0;overflow:hidden"><div style="background:var(--n);color:#fff;padding:14px 18px;display:flex;align-items:center;justify-content:space-between"><div><div style="font-family:Fraunces,serif;font-weight:700;font-size:1rem">Semana '+w+'</div><div style="font-size:.7rem;opacity:.6">Máx. 5 vídeos</div></div><span class="badge badge-yellow">'+w+'ª</span></div><div style="padding:16px">'+rows+'</div><div style="padding:0 16px 16px"><button class="btn btn-primary btn-sm" style="width:100%;justify-content:center" id="sb'+w+'" onclick="saveW('+w+')">💾 Salvar Semana '+w+'</button></div></div>';
+  }
+}
+async function saveW(w){
+  const vids=[];for(let i=0;i<5;i++){const v=document.getElementById('w'+w+'v'+i).value.trim();if(v)vids.push(v);}
+  const fd=new FormData();fd.append('week',w);fd.append('month',M);fd.append('year',Y);vids.forEach(v=>fd.append('videos[]',v));
+  const r=await fetch('/traffic/'+CID+'/save',{method:'POST',body:fd});
+  if(r.ok){const btn=document.getElementById('sb'+w);btn.textContent='✅ Salvo!';btn.style.background='#22C55E';setTimeout(()=>{btn.textContent='💾 Salvar Semana '+w;btn.style.background='';},2000);}
+}
+renderWeeks();
+</script>
+{% endblock %}
