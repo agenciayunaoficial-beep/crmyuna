@@ -1,64 +1,58 @@
 <!DOCTYPE html>
 <html lang="pt-BR">
 <head>
-<meta charset="UTF-8"/>
+<meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Recibo — Yuna Marketing</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:wght@700&display=swap" rel="stylesheet"/>
 <style>
 *{margin:0;padding:0;box-sizing:border-box}
 body{font-family:"Plus Jakarta Sans",sans-serif;background:#f0f4ff;min-height:100vh;display:flex;align-items:center;justify-content:center;padding:30px}
-.receipt{background:#fff;width:420px;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.15)}
-.receipt-header{background:linear-gradient(135deg,#0D1A45,#1A2B6B);padding:28px;text-align:center;color:#fff}
-.r-logo{width:48px;height:48px;background:#FFC107;border-radius:12px;display:inline-flex;align-items:center;justify-content:center;font-family:"Fraunces",serif;font-size:1.6rem;font-weight:700;color:#0D1A45;margin-bottom:10px}
-.r-title{font-family:"Fraunces",serif;font-size:1.3rem;font-weight:700}
-.r-sub{font-size:.75rem;opacity:.6;margin-top:3px}
-.receipt-body{padding:28px}
-.r-amount{text-align:center;margin:20px 0;padding:20px;background:#F4F7FC;border-radius:14px}
-.r-amount-label{font-size:.72rem;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.5px}
-.r-amount-value{font-family:"Fraunces",serif;font-size:2.8rem;font-weight:700;color:#0D1A45;line-height:1.1}
-.r-row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid #F1F5F9;font-size:.85rem}
-.r-row:last-child{border-bottom:none}
-.r-row-label{color:#64748B;font-weight:500}
-.r-row-value{font-weight:700;color:#0F172A}
-.receipt-footer{background:#FFF8E1;padding:16px 28px;text-align:center;font-size:.75rem;color:#92400E;border-top:1px dashed #FCD34D}
-.badge-paid{display:inline-flex;align-items:center;gap:6px;background:#DCFCE7;color:#15803D;font-weight:700;font-size:.82rem;padding:6px 16px;border-radius:50px;margin:14px auto}
-.btn-print{display:block;margin:16px auto 0;padding:11px 28px;background:#1A2B6B;color:#fff;border:none;border-radius:50px;font-family:inherit;font-weight:700;font-size:.88rem;cursor:pointer;transition:all .2s}
-.btn-print:hover{background:#FFC107;color:#0D1A45}
-@media print{
-  body{background:#fff;padding:0}
-  .receipt{box-shadow:none;border-radius:0;width:100%}
-  .btn-print{display:none}
-}
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:wght@700&display=swap');
+:root{--y:#FFC107;--n:#1A2B6B;--nd:#0D1A45;--bd:#E2E8F0;--gr:#64748B;--gl:#F3F6FC;--r:10px;--rl:18px}
+.wrap{background:#fff;width:430px;border-radius:20px;overflow:hidden;box-shadow:0 20px 60px rgba(0,0,0,.15)}
+.rh{background:linear-gradient(135deg,#0D1A45,#1A2B6B);padding:28px;text-align:center;color:#fff}
+.rico{width:54px;height:54px;background:var(--y);border-radius:13px;display:inline-flex;align-items:center;justify-content:center;font-family:"Fraunces",serif;font-size:1.7rem;font-weight:800;color:var(--nd);margin-bottom:10px}
+.rtitle{font-family:"Fraunces",serif;font-size:1.3rem;font-weight:700}
+.rsub{font-size:.74rem;opacity:.55;margin-top:3px}
+.rb{padding:28px}
+.amount-box{text-align:center;margin:16px 0;padding:18px;background:var(--gl);border-radius:14px}
+.al{font-size:.68rem;font-weight:700;color:var(--gr);text-transform:uppercase;letter-spacing:.5px;margin-bottom:6px}
+.av{font-family:"Fraunces",serif;font-size:2.8rem;font-weight:700;color:var(--n);line-height:1}
+.badge-paid{display:inline-flex;align-items:center;gap:6px;background:#DCFCE7;color:#15803D;font-weight:700;font-size:.82rem;padding:6px 16px;border-radius:50px;margin:12px auto;display:block;width:fit-content}
+.row{display:flex;justify-content:space-between;padding:10px 0;border-bottom:1px solid var(--bd);font-size:.85rem}
+.row:last-of-type{border-bottom:none}
+.rl{color:var(--gr);font-weight:500}
+.rv{font-weight:700;color:#0F172A}
+.btn-print{display:block;margin:16px auto 0;padding:11px 28px;background:var(--n);color:#fff;border:none;border-radius:50px;font-weight:700;font-size:.88rem;cursor:pointer;transition:all .2s}
+.btn-print:hover{background:var(--y);color:var(--nd)}
+.rf{background:#FFF8E1;padding:14px 28px;text-align:center;font-size:.73rem;color:#92400E;border-top:1px dashed #FCD34D}
+@media print{body{background:#fff;padding:0}.wrap{box-shadow:none;border-radius:0;width:100%}.btn-print{display:none}}
 </style>
 </head>
 <body>
-<div class="receipt">
-  <div class="receipt-header">
-    <div class="r-logo">Y</div>
-    <div class="r-title">YUNA Marketing</div>
-    <div class="r-sub">CEOs: Alberto Santos & Victória Ferreiro</div>
+<div class="wrap">
+  <div class="rh">
+    <div class="rico">Y</div>
+    <div class="rtitle">YUNA Marketing</div>
+    <div class="rsub">CEOs: Alberto Santos & Victória Ferreiro</div>
   </div>
-  <div class="receipt-body">
-    <div style="text-align:center">
-      <div style="font-size:.72rem;font-weight:700;color:#64748B;text-transform:uppercase;letter-spacing:.5px">Comprovante de Pagamento</div>
+  <div class="rb">
+    <div style="text-align:center;margin-bottom:6px">
+      <div style="font-size:.7rem;font-weight:700;color:var(--gr);text-transform:uppercase;letter-spacing:.5px">Comprovante de Pagamento</div>
       <div class="badge-paid">✅ Pagamento Confirmado</div>
     </div>
-    <div class="r-amount">
-      <div class="r-amount-label">Valor Pago</div>
-      <div class="r-amount-value">R$ {{ "%.2f"|format(pay.amount or 0)|replace('.',',') }}</div>
+    <div class="amount-box">
+      <div class="al">Valor Pago</div>
+      <div class="av">R$ {{ "%.2f"|format(pay.amount or 0)|replace('.',',') }}</div>
     </div>
-    <div class="r-row"><span class="r-row-label">Cliente</span><span class="r-row-value">{{ pay.client_name }}</span></div>
-    <div class="r-row"><span class="r-row-label">Serviço</span><span class="r-row-value">{{ pay.plan or '—' }} {{ pay.plan_type or '' }}</span></div>
-    <div class="r-row"><span class="r-row-label">Forma de Pagamento</span><span class="r-row-value">{{ 'PIX' if pay.method=='pix' else 'Cartão de Crédito' }}</span></div>
-    <div class="r-row"><span class="r-row-label">Vencimento</span><span class="r-row-value">{{ pay.due_date }}</span></div>
-    <div class="r-row"><span class="r-row-label">Data do Pagamento</span><span class="r-row-value">{{ pay.paid_date or '—' }}</span></div>
-    <div class="r-row"><span class="r-row-label">Referência</span><span class="r-row-value" style="font-size:.72rem;color:#94A3B8">{{ pay.id[:12] }}...</span></div>
+    <div class="row"><span class="rl">Cliente</span><span class="rv">{{ pay.client_name }}</span></div>
+    <div class="row"><span class="rl">Serviço</span><span class="rv">{{ pay.plan or '—' }} {{ pay.plan_type or '' }}</span></div>
+    <div class="row"><span class="rl">Pagamento</span><span class="rv">{{ 'PIX' if pay.method=='pix' else 'Cartão de Crédito' }}</span></div>
+    <div class="row"><span class="rl">Vencimento</span><span class="rv">{{ pay.due_date }}</span></div>
+    <div class="row"><span class="rl">Data do Pagamento</span><span class="rv">{{ pay.paid_date or '—' }}</span></div>
+    <div class="row"><span class="rl">Referência</span><span class="rv" style="font-size:.72rem;color:#94A3B8">{{ pay.id[:14] }}...</span></div>
     <button class="btn-print" onclick="window.print()">🖨️ Imprimir Recibo</button>
   </div>
-  <div class="receipt-footer">
-    📱 (82) 99424-3314 · Maceió, Alagoas<br/>
-    Este recibo é um comprovante interno emitido pela Yuna Marketing.
-  </div>
+  <div class="rf">📱 (82) 99424-3314 · Maceió, Alagoas<br/>Comprovante interno emitido pela Yuna Marketing.</div>
 </div>
 </body>
 </html>
