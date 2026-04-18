@@ -1,52 +1,33 @@
 <!DOCTYPE html>
-<html lang="pt-BR">
-<head>
-<meta charset="UTF-8"/>
-<meta name="viewport" content="width=device-width,initial-scale=1.0"/>
+<html lang="pt-BR"><head><meta charset="UTF-8"/><meta name="viewport" content="width=device-width,initial-scale=1.0"/>
 <title>Login — Yuna CRM</title>
-<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Fraunces:ital,wght@0,700;1,600&display=swap" rel="stylesheet"/>
-<style>
-*{margin:0;padding:0;box-sizing:border-box}
-body{font-family:"Plus Jakarta Sans",sans-serif;background:linear-gradient(135deg,#0D1A45 0%,#1A2B6B 60%,#1e3a9f 100%);min-height:100vh;display:flex;align-items:center;justify-content:center;padding:20px}
-.login-box{background:#fff;border-radius:20px;padding:40px;width:100%;max-width:400px;box-shadow:0 20px 60px rgba(0,0,0,.3)}
-.login-logo{text-align:center;margin-bottom:28px}
-.logo-icon{width:60px;height:60px;background:#FFC107;border-radius:14px;display:inline-flex;align-items:center;justify-content:center;font-family:"Fraunces",serif;font-size:2rem;font-weight:900;color:#0D1A45;margin-bottom:10px}
-.login-title{font-family:"Fraunces",serif;font-size:1.6rem;font-weight:700;color:#0D1A45;margin-bottom:4px}
-.login-sub{font-size:.82rem;color:#64748B}
-.form-group{margin-bottom:16px}
-label{display:block;font-size:.75rem;font-weight:700;color:#1A2B6B;letter-spacing:.3px;text-transform:uppercase;margin-bottom:6px}
-input{width:100%;padding:12px 14px;border:1.5px solid #E2E8F0;border-radius:10px;font-family:inherit;font-size:.9rem;color:#0F172A;outline:none;transition:border-color .2s}
-input:focus{border-color:#1A2B6B}
-.btn-login{width:100%;padding:13px;background:#FFC107;color:#0D1A45;border:none;border-radius:10px;font-family:inherit;font-weight:700;font-size:.92rem;cursor:pointer;transition:all .25s;margin-top:4px}
-.btn-login:hover{background:#E6A800;transform:translateY(-1px)}
-.alert{padding:10px 14px;background:#FEE2E2;color:#DC2626;border-radius:10px;font-size:.83rem;font-weight:500;margin-bottom:14px;border:1px solid #FECACA}
+<link rel="stylesheet" href="{{ url_for('static', filename='css/main.css') }}"/>
+<style>body{background:linear-gradient(135deg,#0D1A45 0%,#1A2B6B 55%,#1e3a9f 100%);display:flex;align-items:center;justify-content:center;min-height:100vh;padding:20px}
+.lc{background:#fff;border-radius:20px;padding:38px 36px;width:100%;max-width:400px;box-shadow:0 24px 70px rgba(0,0,0,.3)}
+.lh{text-align:center;margin-bottom:28px}
+.li{width:64px;height:64px;background:var(--y);border-radius:16px;display:inline-flex;align-items:center;justify-content:center;font-family:"Fraunces",serif;font-size:2rem;font-weight:800;color:var(--nd);margin-bottom:12px}
+.lt{font-family:"Fraunces",serif;font-size:1.6rem;font-weight:700;color:var(--n)}
+.ls{font-size:.82rem;color:var(--gr);margin-top:4px}
+.fg{margin-bottom:16px}
+.fg label{display:block;font-size:.72rem;font-weight:700;color:var(--n);text-transform:uppercase;letter-spacing:.3px;margin-bottom:6px}
+.fg input{width:100%;padding:12px 14px;border:1.5px solid var(--bd);border-radius:var(--r);font-size:.9rem;outline:none;transition:all .2s}
+.fg input:focus{border-color:var(--n);box-shadow:0 0 0 3px rgba(26,43,107,.1)}
+.bl{width:100%;padding:13px;background:var(--y);color:var(--nd);border:none;border-radius:var(--r);font-family:inherit;font-weight:700;font-size:.92rem;cursor:pointer;transition:all .25s;margin-top:4px}
+.bl:hover{background:var(--yd);transform:translateY(-1px);box-shadow:0 6px 20px rgba(255,193,7,.4)}
+.alert{padding:10px 14px;background:#FEE2E2;color:#DC2626;border-radius:var(--r);font-size:.82rem;font-weight:600;margin-bottom:16px;border:1px solid #FECACA}
 .deco{position:fixed;inset:0;pointer-events:none;overflow:hidden}
-.deco-blob{position:absolute;border-radius:50%;background:rgba(255,193,7,.08);animation:bf 8s ease-in-out infinite}
-.db1{width:500px;height:500px;top:-200px;right:-100px}
-.db2{width:300px;height:300px;bottom:-100px;left:-80px;animation-delay:3s}
-@keyframes bf{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}
-</style>
-</head>
-<body>
-<div class="deco"><div class="deco-blob db1"></div><div class="deco-blob db2"></div></div>
-<div class="login-box">
-  <div class="login-logo">
-    <div class="logo-icon">Y</div>
-    <div class="login-title">YUNA CRM</div>
-    <div class="login-sub">Painel interno de gestão</div>
-  </div>
+.blob{position:absolute;border-radius:50%;filter:blur(80px);opacity:.12;animation:bf 8s ease-in-out infinite}
+.b1{width:500px;height:500px;background:var(--y);top:-150px;right:-80px}
+.b2{width:350px;height:350px;background:#4A90E2;bottom:-100px;left:-80px;animation-delay:4s}
+@keyframes bf{0%,100%{transform:scale(1)}50%{transform:scale(1.1)}}</style>
+</head><body>
+<div class="deco"><div class="blob b1"></div><div class="blob b2"></div></div>
+<div class="lc">
+  <div class="lh"><div class="li">Y</div><div class="lt">YUNA CRM</div><div class="ls">Painel interno de gestão</div></div>
   {% if error %}<div class="alert">⚠️ {{ error }}</div>{% endif %}
   <form method="POST">
-    <div class="form-group">
-      <label>Usuário</label>
-      <input type="text" name="username" placeholder="Seu usuário" required autofocus/>
-    </div>
-    <div class="form-group">
-      <label>Senha</label>
-      <input type="password" name="password" placeholder="••••••••" required/>
-    </div>
-    <button type="submit" class="btn-login">Entrar no sistema →</button>
+    <div class="fg"><label>Usuário</label><input type="text" name="username" placeholder="Seu usuário" required autofocus/></div>
+    <div class="fg"><label>Senha</label><input type="password" name="password" placeholder="••••••••" required/></div>
+    <button type="submit" class="bl">Entrar →</button>
   </form>
-</div>
-</body>
-</html>
+</div></body></html>
