@@ -1,220 +1,111 @@
 {% extends 'base.html' %}
-{% block title %}{{ client.name }} — Yuna CRM{% endblock %}
-{% block topbar_title %}Perfil do Cliente{% endblock %}
+{% block title %}{{ client.name }}{% endblock %}{% block topbar_title %}Perfil do Cliente{% endblock %}
 {% block content %}
 <div class="page-header">
   <div style="display:flex;align-items:center;gap:14px">
-    <div style="width:50px;height:50px;border-radius:14px;background:var(--y);color:var(--nd);font-family:'Fraunces',serif;font-weight:800;font-size:1.4rem;display:flex;align-items:center;justify-content:center">{{ client.name[0].upper() }}</div>
-    <div>
-      <h1>{{ client.name }}</h1>
-      <p>{{ client.plan }} · {{ client.plan_type }} · Desde {{ client.start_date or '—' }}</p>
-    </div>
+    <div style="width:52px;height:52px;border-radius:14px;background:var(--y);color:var(--nd);font-family:'Fraunces',serif;font-weight:800;font-size:1.5rem;display:flex;align-items:center;justify-content:center">{{ client.name[0].upper() }}</div>
+    <div><h1>{{ client.name }}</h1><p>{{ client.plan }} · {{ client.plan_type }} · Desde {{ client.start_date or '—' }}</p></div>
   </div>
-  <div style="display:flex;gap:8px">
+  <div style="display:flex;gap:8px;flex-wrap:wrap">
+    {% if client.plan_type=='social' %}<a href="{{ url_for('editorial_calendar', cid=client.id) }}" class="btn btn-ghost">📅 Calendário</a>{% endif %}
+    {% if client.plan_type=='trafego' %}<a href="{{ url_for('traffic_weeks', cid=client.id) }}" class="btn btn-ghost">📣 Semanas</a>{% endif %}
+    <a href="{{ url_for('media_library', cid=client.id) }}" class="btn btn-ghost">🖼️ Mídia</a>
     <a href="{{ url_for('edit_client', cid=client.id) }}" class="btn btn-ghost">✏️ Editar</a>
     <a href="{{ url_for('clients') }}" class="btn btn-ghost">← Voltar</a>
   </div>
 </div>
-
-<div style="display:grid;grid-template-columns:1fr 2fr;gap:20px;align-items:start">
-  <!-- INFO CARD -->
+<div style="display:grid;grid-template-columns:1fr 2.2fr;gap:16px;align-items:start">
   <div>
-    <div class="card" style="margin-bottom:16px">
-      <div style="font-size:.85rem;font-weight:700;color:var(--n);margin-bottom:14px">📋 Informações</div>
-      <div style="display:flex;flex-direction:column;gap:10px">
-        {% macro info_row(icon, label, value) %}
-        <div style="display:flex;gap:10px;align-items:flex-start">
-          <span>{{ icon }}</span>
-          <div><div style="font-size:.7rem;color:var(--gr);text-transform:uppercase;font-weight:700">{{ label }}</div>
-          <div style="font-size:.88rem;font-weight:600;color:var(--tx)">{{ value or '—' }}</div></div>
-        </div>
-        {% endmacro %}
-        {{ info_row('📱', 'WhatsApp', client.whatsapp) }}
-        {{ info_row('📸', 'Instagram', client.instagram) }}
-        {{ info_row('📧', 'E-mail', client.email) }}
-        {{ info_row('💰', 'Valor', 'R$ ' + "%.0f"|format(client.value or 0)) }}
-        {{ info_row('📅', 'Vencimento', 'Todo dia ' + (client.payment_day|string)) }}
-        {{ info_row('💳', 'Pagamento', 'PIX' if client.payment_method=='pix' else 'Crédito') }}
-      </div>
-      {% if client.notes %}
-      <div style="margin-top:14px;padding:10px;background:var(--gl);border-radius:var(--r);font-size:.82rem;color:var(--gr)">
-        📝 {{ client.notes }}
-      </div>
-      {% endif %}
+    <div class="card" style="margin-bottom:14px">
+      <div class="card-title">📋 Informações</div>
+      {% for ico,lbl,val in [('📸','Instagram',client.instagram),('💰','Valor','R$ '+("%.2f"|format(client.value or 0))),('📅','Vencimento','Todo dia '+(client.payment_day|string)),('💳','Pagamento','PIX' if client.payment_method=='pix' else 'Crédito')] %}
+      <div style="display:flex;gap:10px;padding:8px 0;border-bottom:1px solid var(--bd)"><span>{{ ico }}</span><div><div style="font-size:.66rem;color:var(--gr);font-weight:700;text-transform:uppercase">{{ lbl }}</div><div style="font-size:.86rem;font-weight:600;margin-top:2px">{{ val or '—' }}</div></div></div>
+      {% endfor %}
+      {% if client.prepaid_months %}<div style="display:flex;gap:10px;padding:8px 0"><span>🎫</span><div><div style="font-size:.66rem;color:var(--gr);font-weight:700;text-transform:uppercase">Pré-pagos</div><div style="font-size:.86rem;font-weight:600">{{ client.prepaid_months }} meses</div></div></div>{% endif %}
+      <div style="margin-top:10px"><span class="badge badge-{% if client.status=='active' %}green{% elif client.status=='cancelled' %}red{% else %}yellow{% endif %}">{{ 'Ativo' if client.status=='active' else ('Cancelado' if client.status=='cancelled' else 'Pausado') }}</span></div>
+      {% if client.notes %}<div style="margin-top:12px;padding:10px;background:var(--gl);border-radius:var(--r);font-size:.8rem;color:var(--gr)">📝 {{ client.notes }}</div>{% endif %}
     </div>
-
-    <div class="card" style="background:var(--yl);border-color:rgba(255,193,7,.3)">
-      <div style="font-size:.82rem;font-weight:700;color:var(--nd);margin-bottom:8px">Status</div>
-      <span class="badge badge-{% if client.status=='active' %}green{% elif client.status=='cancelled' %}red{% else %}yellow{% endif %}" style="font-size:.85rem;padding:6px 14px">
-        {{ 'Ativo' if client.status=='active' else ('Cancelado' if client.status=='cancelled' else 'Pausado') }}
-      </span>
-      {% if client.whatsapp %}
-      <a href="https://wa.me/55{{ client.whatsapp|replace('(','') |replace(')','') |replace(' ','') |replace('-','') }}" target="_blank" class="btn btn-green btn-sm" style="margin-top:10px;width:100%;justify-content:center">📱 Abrir WhatsApp</a>
-      {% endif %}
+    {% if client.contract_file %}<div class="card" style="margin-bottom:14px"><div class="card-title">📄 Contrato</div><a href="{{ url_for('static', filename=client.contract_file) }}" target="_blank" class="btn btn-primary btn-sm" style="width:100%;justify-content:center">Ver Contrato</a></div>{% endif %}
+    <div class="card" style="background:var(--nd);border:none;color:#fff">
+      <div style="font-size:.8rem;font-weight:700;margin-bottom:12px;opacity:.75">Ações Rápidas</div>
+      <button class="btn btn-yellow" style="width:100%;justify-content:center;margin-bottom:8px" onclick="openModal('mpay')">+ Nova Cobrança</button>
+      {% if client.instagram %}<a href="https://instagram.com/{{ client.instagram.replace('@','') }}" target="_blank" class="btn btn-ghost" style="width:100%;justify-content:center;color:#fff;border-color:rgba(255,255,255,.2)">📸 Ver Instagram</a>{% endif %}
     </div>
   </div>
-
-  <!-- TABS -->
   <div>
-    <div style="display:flex;gap:6px;margin-bottom:16px;border-bottom:2px solid var(--bd);padding-bottom:0">
-      {% for tab_id, tab_label in [('tab-pay','💰 Cobranças'),('tab-rec','📅 Gravações'),('tab-rep','📊 Relatórios')] %}
-      <button onclick="showTab('{{ tab_id }}')" id="btn-{{ tab_id }}"
-        style="padding:10px 16px;border:none;background:none;cursor:pointer;font-family:inherit;font-size:.85rem;font-weight:600;color:var(--gr);border-bottom:2px solid transparent;margin-bottom:-2px;transition:all .2s"
-        class="tab-btn">{{ tab_label }}</button>
-      {% endfor %}
+    <div class="tabs-nav">
+      <button class="tab-btn active" onclick="sTab('tp',this)">💰 Cobranças</button>
+      <button class="tab-btn" onclick="sTab('tg',this)">🎬 Gravações</button>
+      <button class="tab-btn" onclick="sTab('tr',this)">📊 Relatórios</button>
+      <button class="tab-btn" onclick="sTab('tm',this)">🖼️ Mídia</button>
     </div>
-
-    <!-- PAYMENTS TAB -->
-    <div id="tab-pay">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-        <span style="font-size:.85rem;font-weight:700;color:var(--n)">Histórico de cobranças</span>
-        <button onclick="document.getElementById('modal-pay').classList.add('open')" class="btn btn-primary btn-sm">+ Nova cobrança</button>
-      </div>
-      {% if payments %}
-      <div class="card" style="padding:0">
-        <div class="table-wrap">
-          <table>
-            <thead><tr><th>Vencimento</th><th>Valor</th><th>Método</th><th>Status</th><th>Ações</th></tr></thead>
-            <tbody>
-            {% for p in payments %}
-            <tr>
-              <td>{{ p.due_date }}</td>
-              <td style="font-weight:700">R$ {{ "%.0f"|format(p.amount or 0) }}</td>
-              <td><span class="badge badge-{% if p.method=='pix' %}green{% else %}blue{% endif %}">{{ 'PIX' if p.method=='pix' else 'Crédito' }}</span></td>
-              <td>
-                <span class="badge badge-{% if p.status=='paid' %}green{% elif p.due_date < today %}red{% else %}yellow{% endif %}">
-                  {{ 'Pago' if p.status=='paid' else ('Atrasado' if p.due_date < today else 'Pendente') }}
-                </span>
-                {% if p.status=='paid' and p.paid_date %}<div style="font-size:.7rem;color:var(--gr)">em {{ p.paid_date }}</div>{% endif %}
-              </td>
-              <td>
-                <div style="display:flex;gap:6px">
-                  {% if p.status != 'paid' %}
-                  <form method="POST" action="{{ url_for('mark_paid', pid=p.id) }}" style="display:inline">
-                    <button type="submit" class="btn btn-green btn-sm">✓ Pago</button>
-                  </form>
-                  {% endif %}
-                  {% if p.status == 'paid' %}
-                  <a href="{{ url_for('receipt', pid=p.id) }}" target="_blank" class="btn btn-ghost btn-sm">🧾 Recibo</a>
-                  {% endif %}
-                </div>
-              </td>
-            </tr>
-            {% endfor %}
-            </tbody>
-          </table>
-        </div>
-      </div>
-      {% else %}
-      <div class="empty"><div class="empty-icon">💰</div><p>Nenhuma cobrança registrada</p></div>
-      {% endif %}
+    <div id="tp" class="tab-pane active">
+      {% if payments %}<div class="card" style="padding:0"><div class="table-wrap"><table>
+        <thead><tr><th>Vencimento</th><th>Valor</th><th>Método</th><th>Status</th><th>Ações</th></tr></thead>
+        <tbody>{% for p in payments %}<tr>
+          <td>{{ p.due_date }}</td>
+          <td style="font-weight:700">R$ {{ "%.2f"|format(p.amount or 0) }}</td>
+          <td><span class="badge {% if p.method=='pix' %}badge-green{% else %}badge-blue{% endif %}">{{ 'PIX' if p.method=='pix' else 'Crédito' }}</span></td>
+          <td><span class="badge badge-{% if p.status=='paid' %}green{% elif p.due_date < today %}red{% else %}yellow{% endif %}">{{ 'Pago' if p.status=='paid' else ('Atrasado' if p.due_date < today else 'Pendente') }}</span></td>
+          <td><div style="display:flex;gap:5px">
+            {% if p.status!='paid' %}<form method="POST" action="{{ url_for('mark_paid', pid=p.id) }}" style="display:inline"><button type="submit" class="btn btn-green btn-sm">✓ Pago</button></form>{% endif %}
+            {% if p.status=='paid' %}<a href="{{ url_for('receipt', pid=p.id) }}" target="_blank" class="btn btn-ghost btn-sm">🧾</a>{% endif %}
+          </div></td>
+        </tr>{% endfor %}</tbody>
+      </table></div></div>
+      {% else %}<div class="empty"><span class="empty-ico">💰</span><p>Nenhuma cobrança</p></div>{% endif %}
     </div>
-
-    <!-- RECORDINGS TAB -->
-    <div id="tab-rec" style="display:none">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-        <span style="font-size:.85rem;font-weight:700;color:var(--n)">Gravações agendadas</span>
-        <a href="{{ url_for('agenda') }}" class="btn btn-primary btn-sm">+ Agendar</a>
-      </div>
-      {% if recordings %}
-      {% for r in recordings %}
+    <div id="tg" class="tab-pane">
+      {% if recordings %}{% for r in recordings %}
       <div class="card-sm" style="margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
-        <div>
-          <div style="font-weight:700;font-size:.9rem">📅 {{ r.date }} {% if r.time %}· ⏰ {{ r.time }}{% endif %}</div>
-          {% if r.address %}<div style="font-size:.78rem;color:var(--gr);margin-top:3px">📍 {{ r.address }}</div>{% endif %}
-          {% if r.notes %}<div style="font-size:.78rem;color:var(--gr);margin-top:3px">📝 {{ r.notes }}</div>{% endif %}
-        </div>
-        <span class="badge badge-{% if r.status=='done' %}green{% elif r.status=='cancelled' %}red{% else %}blue{% endif %}">
-          {{ 'Concluído' if r.status=='done' else ('Cancelado' if r.status=='cancelled' else 'Agendado') }}
-        </span>
-      </div>
-      {% endfor %}
-      {% else %}
-      <div class="empty"><div class="empty-icon">📅</div><p>Nenhuma gravação registrada</p></div>
-      {% endif %}
+        <div><div style="font-weight:700;font-size:.88rem">📅 {{ r.date }}{% if r.time %} · ⏰ {{ r.time }}{% endif %}</div>{% if r.address %}<div style="font-size:.74rem;color:var(--gr)">📍 {{ r.address }}</div>{% endif %}</div>
+        <span class="badge badge-{% if r.status=='done' %}green{% elif r.status=='cancelled' %}red{% else %}blue{% endif %}">{{ 'Feito' if r.status=='done' else ('Cancelado' if r.status=='cancelled' else 'Agendado') }}</span>
+      </div>{% endfor %}
+      {% else %}<div class="empty"><span class="empty-ico">🎬</span><p>Nenhuma gravação</p></div>{% endif %}
     </div>
-
-    <!-- REPORTS TAB -->
-    <div id="tab-rep" style="display:none">
-      <div style="display:flex;justify-content:space-between;align-items:center;margin-bottom:14px">
-        <span style="font-size:.85rem;font-weight:700;color:var(--n)">Relatórios mensais</span>
-        <a href="{{ url_for('new_report') }}?client={{ client.id }}" class="btn btn-primary btn-sm">+ Novo relatório</a>
-      </div>
-      {% if reports %}
-      {% set months_pt = ['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'] %}
-      {% for r in reports %}
+    <div id="tr" class="tab-pane">
+      {% set mpt=['Jan','Fev','Mar','Abr','Mai','Jun','Jul','Ago','Set','Out','Nov','Dez'] %}
+      <div style="margin-bottom:12px"><a href="{{ url_for('new_report') }}?client={{ client.id }}" class="btn btn-primary btn-sm">+ Novo Relatório</a></div>
+      {% if reports %}{% for r in reports %}
       <div class="card-sm" style="margin-bottom:10px;display:flex;align-items:center;justify-content:space-between">
-        <div>
-          <div style="font-weight:700;font-size:.9rem">{{ months_pt[r.month-1] }}/{{ r.year }} — {{ 'Social Media' if r.report_type=='social' else 'Tráfego Pago' }}</div>
-          {% if r.report_type == 'social' %}
-          <div style="font-size:.78rem;color:var(--gr);margin-top:3px">👥 {{ r.followers or 0 }} seguidores · 👁️ {{ r.profile_visits or 0 }} visitas</div>
-          {% else %}
-          <div style="font-size:.78rem;color:var(--gr);margin-top:3px">💬 {{ r.new_whatsapp_clients or 0 }} clientes WhatsApp · 💰 R$ {{ "%.0f"|format(r.invested_value or 0) }} investido</div>
-          {% endif %}
-        </div>
+        <div><div style="font-weight:700;font-size:.88rem">{{ mpt[r.month-1] }}/{{ r.year }} — {{ 'Social' if r.report_type=='social' else 'Tráfego' }}</div><div style="font-size:.74rem;color:var(--gr)">{% if r.report_type=='social' %}👥 {{ r.followers }} seg.{% else %}💬 {{ r.new_messages }} msgs{% endif %}</div></div>
         <a href="{{ url_for('view_report', rid=r.id) }}" class="btn btn-ghost btn-sm">Ver →</a>
+      </div>{% endfor %}
+      {% else %}<div class="empty"><span class="empty-ico">📊</span><p>Nenhum relatório</p></div>{% endif %}
+    </div>
+    <div id="tm" class="tab-pane">
+      <div style="margin-bottom:12px"><a href="{{ url_for('media_library', cid=client.id) }}" class="btn btn-primary btn-sm">📂 Abrir Biblioteca</a></div>
+      {% if media %}
+      <div style="display:grid;grid-template-columns:repeat(auto-fill,minmax(110px,1fr));gap:10px">
+        {% for m in media %}<div style="background:#fff;border-radius:var(--r);overflow:hidden;border:1.5px solid var(--bd)">
+          {% if m.file_type=='image' %}<img src="{{ url_for('static', filename=m.file_path) }}" style="width:100%;height:80px;object-fit:cover"/>
+          {% else %}<div style="height:80px;background:var(--nd);display:flex;align-items:center;justify-content:center;font-size:1.8rem">🎬</div>{% endif %}
+          <div style="padding:5px 7px;font-size:.7rem;font-weight:600;color:var(--gr);white-space:nowrap;overflow:hidden;text-overflow:ellipsis">{{ m.title or '—' }}</div>
+        </div>{% endfor %}
       </div>
-      {% endfor %}
-      {% else %}
-      <div class="empty"><div class="empty-icon">📊</div><p>Nenhum relatório ainda</p></div>
-      {% endif %}
+      {% else %}<div class="empty"><span class="empty-ico">🖼️</span><p>Nenhuma mídia</p></div>{% endif %}
     </div>
   </div>
 </div>
-
-<!-- MODAL: Nova Cobrança -->
-<div class="modal-overlay" id="modal-pay">
-  <div class="modal">
-    <div class="modal-header">
-      <div class="modal-title">+ Nova Cobrança</div>
-      <button class="modal-close" onclick="document.getElementById('modal-pay').classList.remove('open')">×</button>
-    </div>
+<div class="modal-overlay" id="mpay">
+  <div class="modal"><div class="modal-header"><div class="modal-title">+ Nova Cobrança</div><button class="modal-close" onclick="closeModal('mpay')">×</button></div>
     <form method="POST" action="{{ url_for('new_payment') }}">
       <input type="hidden" name="client_id" value="{{ client.id }}"/>
       <div class="form-grid">
-        <div class="form-group">
-          <label>Valor (R$)</label>
-          <input type="number" name="amount" value="{{ client.value }}" step="0.01" required/>
-        </div>
-        <div class="form-group">
-          <label>Vencimento</label>
-          <input type="date" name="due_date" required/>
-        </div>
-        <div class="form-group full">
-          <label>Método</label>
-          <select name="method">
-            <option value="pix">PIX</option>
-            <option value="credito">Cartão de Crédito</option>
-          </select>
-        </div>
-        <div class="form-group full">
-          <label>Observações</label>
-          <input type="text" name="notes" placeholder="Opcional"/>
-        </div>
+        <div class="form-group"><label>Valor (R$)</label><input type="number" name="amount" value="{{ client.value }}" step="0.01"/></div>
+        <div class="form-group"><label>Vencimento</label><input type="date" name="due_date" required/></div>
+        <div class="form-group full"><label>Método</label><select name="method"><option value="pix">PIX</option><option value="credito">Crédito</option></select></div>
       </div>
-      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:8px">Criar Cobrança</button>
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:10px">Criar Cobrança</button>
     </form>
   </div>
 </div>
-
 <script>
-const today = "{{ today }}";
-// Tabs
-function showTab(id){
-  ['tab-pay','tab-rec','tab-rep'].forEach(t=>{
-    document.getElementById(t).style.display = t===id ? 'block' : 'none';
-  });
-  document.querySelectorAll('.tab-btn').forEach(b=>{
-    b.style.color = b.id==='btn-'+id ? 'var(--n)' : 'var(--gr)';
-    b.style.borderBottomColor = b.id==='btn-'+id ? 'var(--n)' : 'transparent';
-  });
+function sTab(id,btn){
+  document.querySelectorAll('.tab-pane').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.tab-btn').forEach(b=>b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  if(btn)btn.classList.add('active');
 }
-showTab('tab-pay');
-const today_val = "{{ date.today().isoformat() if date else '' }}";
-</script>
-{% endblock %}
-{% block scripts %}
-<script>
-const today = "{{ date.today().isoformat() }}";
 </script>
 {% endblock %}
