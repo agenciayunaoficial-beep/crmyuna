@@ -1,52 +1,89 @@
---- PAYMENTS ---
 {% extends 'base.html' %}
-{% block title %}Cobranças — Yuna CRM{% endblock %}
-{% block topbar_title %}Cobranças{% endblock %}
+{% block title %}Cobranças{% endblock %}{% block topbar_title %}Cobranças{% endblock %}
 {% block content %}
 <div class="page-header">
-  <div><h1>Cobranças</h1><p>Controle de pagamentos dos clientes</p></div>
-</div>
-
-{% set pending_list = payments|selectattr('status','eq','pending')|list %}
-{% set paid_list = payments|selectattr('status','eq','paid')|list %}
-{% set overdue_list = pending_list|selectattr('due_date','lt',today)|list %}
-
-<div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
-  <div class="stat-card yellow"><div class="stat-label">Pendentes</div><div class="stat-value">{{ pending_list|length }}</div><div class="stat-icon">⏳</div></div>
-  <div class="stat-card red"><div class="stat-label">Em Atraso</div><div class="stat-value">{{ overdue_list|length }}</div><div class="stat-icon">⚠️</div></div>
-  <div class="stat-card green"><div class="stat-label">Pagas (total)</div><div class="stat-value">{{ paid_list|length }}</div><div class="stat-icon">✅</div></div>
-</div>
-
-<div class="card">
-  <div class="table-wrap">
-    <table>
-      <thead><tr><th>Cliente</th><th>Vencimento</th><th>Valor</th><th>Método</th><th>Status</th><th>Ações</th></tr></thead>
-      <tbody>
-      {% for p in payments %}
-      <tr>
-        <td style="font-weight:700">{{ p.client_name }}</td>
-        <td>{{ p.due_date }}</td>
-        <td style="font-weight:700;color:var(--n)">R$ {{ "%.0f"|format(p.amount or 0) }}</td>
-        <td><span class="badge badge-{% if p.method=='pix' %}green{% else %}blue{% endif %}">{{ 'PIX' if p.method=='pix' else 'Crédito' }}</span></td>
-        <td>
-          <span class="badge badge-{% if p.status=='paid' %}green{% elif p.due_date < today %}red{% else %}yellow{% endif %}">
-            {{ 'Pago' if p.status=='paid' else ('Atrasado' if p.due_date < today else 'Pendente') }}
-          </span>
-        </td>
-        <td>
-          <div style="display:flex;gap:6px;flex-wrap:wrap">
-            {% if p.status != 'paid' %}
-            <form method="POST" action="/payments/{{ p.id }}/pay"><button type="submit" class="btn btn-green btn-sm">✓ Pago</button></form>
-            {% endif %}
-            {% if p.status == 'paid' %}
-            <a href="/payments/{{ p.id }}/receipt" target="_blank" class="btn btn-ghost btn-sm">🧾 Recibo</a>
-            {% endif %}
-          </div>
-        </td>
-      </tr>
-      {% endfor %}
-      </tbody>
-    </table>
+  <div><h1>Cobranças</h1></div>
+  <div style="display:flex;gap:8px">
+    <button class="btn btn-ghost" onclick="openModal('mnew')">+ Nova Cobrança</button>
+    <button class="btn btn-primary" onclick="openModal('mbot');loadReminders()">🤖 Robô WhatsApp</button>
   </div>
 </div>
+{% set pl=payments|selectattr('status','eq','pending')|list %}
+{% set ov=pl|selectattr('due_date','lt',today)|list %}
+{% set pd=payments|selectattr('status','eq','paid')|list %}
+<div class="stats-grid" style="grid-template-columns:repeat(3,1fr)">
+  <div class="stat-card sc-yellow"><div class="stat-label">Pendentes</div><div class="stat-value">{{ pl|length }}</div><div class="stat-icon">⏳</div></div>
+  <div class="stat-card sc-red"><div class="stat-label">Em Atraso</div><div class="stat-value">{{ ov|length }}</div><div class="stat-icon">⚠️</div></div>
+  <div class="stat-card sc-green"><div class="stat-label">Pagas (total)</div><div class="stat-value">{{ pd|length }}</div><div class="stat-icon">✅</div></div>
+</div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:14px">
+  <button class="btn btn-ghost btn-sm active-filter" onclick="filterP('all',this)">Todas</button>
+  <button class="btn btn-ghost btn-sm" onclick="filterP('pending',this)">Pendentes</button>
+  <button class="btn btn-ghost btn-sm" onclick="filterP('overdue',this)">Em Atraso</button>
+  <button class="btn btn-ghost btn-sm" onclick="filterP('paid',this)">Pagas</button>
+</div>
+<div class="card" style="padding:0"><div class="table-wrap"><table id="pt">
+  <thead><tr><th>Cliente</th><th>Vencimento</th><th>Valor</th><th>Método</th><th>Status</th><th>Ações</th></tr></thead>
+  <tbody>{% for p in payments %}
+  <tr data-s="{{ p.status }}" data-ov="{{ 'y' if p.status=='pending' and p.due_date < today else 'n' }}">
+    <td style="font-weight:700">{{ p.client_name }}</td>
+    <td>{{ p.due_date }}</td>
+    <td style="font-weight:700;color:var(--n)">R$ {{ "%.2f"|format(p.amount or 0) }}</td>
+    <td><span class="badge {% if p.method=='pix' %}badge-green{% else %}badge-blue{% endif %}">{{ 'PIX' if p.method=='pix' else 'Crédito' }}</span></td>
+    <td><span class="badge badge-{% if p.status=='paid' %}green{% elif p.due_date < today %}red{% else %}yellow{% endif %}">{{ 'Pago' if p.status=='paid' else ('Atrasado' if p.due_date < today else 'Pendente') }}</span></td>
+    <td><div style="display:flex;gap:5px;flex-wrap:wrap">
+      {% if p.status!='paid' %}<form method="POST" action="{{ url_for('mark_paid', pid=p.id) }}" style="display:inline"><button type="submit" class="btn btn-green btn-sm">✓ Pago</button></form>{% endif %}
+      {% if p.status=='paid' %}<a href="{{ url_for('receipt', pid=p.id) }}" target="_blank" class="btn btn-ghost btn-sm">🧾 Recibo</a>{% endif %}
+    </div></td>
+  </tr>{% endfor %}
+  </tbody>
+</table></div></div>
+
+<div class="modal-overlay" id="mnew">
+  <div class="modal"><div class="modal-header"><div class="modal-title">+ Nova Cobrança</div><button class="modal-close" onclick="closeModal('mnew')">×</button></div>
+    <form method="POST" action="{{ url_for('new_payment') }}">
+      <div class="form-grid">
+        <div class="form-group full"><label>Cliente</label><select name="client_id" required><option value="">Selecionar...</option>{% for c in clients %}<option value="{{ c.id }}">{{ c.name }}</option>{% endfor %}</select></div>
+        <div class="form-group"><label>Valor (R$)</label><input type="number" name="amount" step="0.01" required/></div>
+        <div class="form-group"><label>Vencimento</label><input type="date" name="due_date" required/></div>
+        <div class="form-group full"><label>Método</label><select name="method"><option value="pix">PIX</option><option value="credito">Crédito</option></select></div>
+      </div>
+      <button type="submit" class="btn btn-primary" style="width:100%;justify-content:center;margin-top:10px">Criar</button>
+    </form>
+  </div>
+</div>
+
+<div class="modal-overlay" id="mbot">
+  <div class="modal" style="max-width:600px">
+    <div class="modal-header"><div class="modal-title">🤖 Robô de Cobrança — WhatsApp</div><button class="modal-close" onclick="closeModal('mbot')">×</button></div>
+    <p style="font-size:.83rem;color:var(--gr);margin-bottom:14px">Pagamentos que vencem <strong>hoje</strong> ou em <strong>3 dias</strong>. Clique para abrir o WhatsApp com a mensagem pronta.</p>
+    <div id="rlist"><div style="text-align:center;padding:20px;color:var(--gr)">Carregando...</div></div>
+  </div>
+</div>
+<script>
+const TODAY='{{ today }}';
+function filterP(t,btn){
+  document.querySelectorAll('.active-filter').forEach(b=>{b.classList.remove('btn-primary');b.classList.add('btn-ghost');b.classList.remove('active-filter');});
+  btn.classList.add('btn-primary');btn.classList.remove('btn-ghost');btn.classList.add('active-filter');
+  document.querySelectorAll('#pt tbody tr').forEach(tr=>{
+    const s=tr.dataset.s,o=tr.dataset.ov;
+    if(t==='all')tr.style.display='';
+    else if(t==='pending')tr.style.display=s==='pending'&&o==='n'?'':'none';
+    else if(t==='overdue')tr.style.display=o==='y'?'':'none';
+    else if(t==='paid')tr.style.display=s==='paid'?'':'none';
+  });
+}
+async function loadReminders(){
+  const r=await fetch('/api/reminders');const data=await r.json();
+  const el=document.getElementById('rlist');
+  if(!data.length){el.innerHTML='<div style="text-align:center;padding:30px;color:var(--gr)">✅ Nenhum pagamento vencendo em 3 dias!</div>';return;}
+  el.innerHTML=data.map(p=>{
+    const isToday=p.due_date===TODAY;
+    const msg=encodeURIComponent((isToday
+      ?'Olá '+p.client_name+'! 😊 Hoje é o dia do pagamento da sua assessoria Yuna Marketing no valor de R$'+p.amount.toFixed(2).replace('.',',')+'. Chave PIX ou cartão. Qualquer dúvida é só chamar! 💛'
+      :'Olá '+p.client_name+'! 😊 Passando para lembrar que em 3 dias ('+p.due_date+') vence o pagamento da sua assessoria Yuna Marketing no valor de R$'+p.amount.toFixed(2).replace('.',',')+'. Qualquer dúvida é só chamar! 💛'));
+    return '<div style="display:flex;align-items:center;justify-content:space-between;background:var(--gl);border-radius:var(--r);padding:12px 14px;margin-bottom:8px;border:1.5px solid var(--bd)"><div><div style="font-weight:700;font-size:.88rem">'+p.client_name+'</div><div style="font-size:.74rem;color:var(--gr)">Vence '+p.due_date+' · R$'+p.amount.toFixed(2).replace('.',',')+' · '+(isToday?'<span style=color:#DC2626;font-weight:700>HOJE!</span>':'em 3 dias')+'</div></div><a href="https://wa.me/?text='+msg+'" target="_blank" class="btn btn-wa btn-sm">📱 Enviar</a></div>';
+  }).join('');
+}
+</script>
 {% endblock %}
