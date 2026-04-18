@@ -1,98 +1,49 @@
 {% extends 'base.html' %}
-{% block title %}Clientes — Yuna CRM{% endblock %}
-{% block topbar_title %}Clientes{% endblock %}
-{% block extra_head %}
-<style>
-.filters{display:flex;gap:10px;flex-wrap:wrap;margin-bottom:20px;align-items:center}
-.search-input{padding:9px 14px;border:1.5px solid var(--bd);border-radius:var(--r);font-size:.85rem;width:260px;outline:none}
-.search-input:focus{border-color:var(--n)}
-.filter-btn{padding:8px 16px;border-radius:var(--r);font-size:.8rem;font-weight:600;border:1.5px solid var(--bd);background:#fff;cursor:pointer;transition:all .2s}
-.filter-btn.active,.filter-btn:hover{background:var(--n);color:#fff;border-color:var(--n)}
-.client-avatar{width:36px;height:36px;border-radius:50%;background:var(--y);color:var(--nd);font-weight:800;font-size:.9rem;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-family:"Fraunces",serif}
-</style>
-{% endblock %}
+{% block title %}Clientes{% endblock %}{% block topbar_title %}Clientes{% endblock %}
 {% block content %}
 <div class="page-header">
-  <div>
-    <h1>Clientes</h1>
-    <p>{{ clients|length }} cliente(s) encontrado(s)</p>
-  </div>
+  <div><h1>Clientes</h1><p>{{ clients|length }} encontrado(s)</p></div>
   <a href="{{ url_for('new_client') }}" class="btn btn-primary">+ Novo Cliente</a>
 </div>
-
-<div class="filters">
-  <form method="GET" style="display:flex;gap:10px;flex-wrap:wrap;align-items:center">
-    <input class="search-input" name="q" value="{{ search }}" placeholder="🔍 Buscar cliente..."/>
-    <button type="submit" class="btn btn-primary btn-sm">Buscar</button>
-    <div style="display:flex;gap:6px;margin-left:8px">
-      <a href="?status=all&q={{ search }}" class="filter-btn {% if status=='all' %}active{% endif %}">Todos</a>
-      <a href="?status=active&q={{ search }}" class="filter-btn {% if status=='active' %}active{% endif %}">Ativos</a>
-      <a href="?status=paused&q={{ search }}" class="filter-btn {% if status=='paused' %}active{% endif %}">Pausados</a>
-      <a href="?status=cancelled&q={{ search }}" class="filter-btn {% if status=='cancelled' %}active{% endif %}">Cancelados</a>
-    </div>
+<div style="display:flex;gap:8px;flex-wrap:wrap;margin-bottom:16px">
+  <form method="GET" style="display:flex;gap:8px;flex-wrap:wrap;align-items:center">
+    <input style="width:200px;padding:9px 12px;border:1.5px solid var(--bd);border-radius:var(--r);font-size:.84rem;outline:none" name="q" value="{{ q }}" placeholder="🔍 Buscar..."/>
+    <select name="status" style="padding:9px 12px;border:1.5px solid var(--bd);border-radius:var(--r);font-size:.84rem;outline:none">
+      <option value="all" {{ 'selected' if status=='all' }}>Todos status</option>
+      <option value="active" {{ 'selected' if status=='active' }}>Ativos</option>
+      <option value="paused" {{ 'selected' if status=='paused' }}>Pausados</option>
+      <option value="cancelled" {{ 'selected' if status=='cancelled' }}>Cancelados</option>
+    </select>
+    <select name="type" style="padding:9px 12px;border:1.5px solid var(--bd);border-radius:var(--r);font-size:.84rem;outline:none">
+      <option value="all" {{ 'selected' if ptype=='all' }}>Todos serviços</option>
+      <option value="social" {{ 'selected' if ptype=='social' }}>📱 Social Media</option>
+      <option value="trafego" {{ 'selected' if ptype=='trafego' }}>📣 Tráfego</option>
+      <option value="site" {{ 'selected' if ptype=='site' }}>🌐 Sites</option>
+    </select>
+    <button type="submit" class="btn btn-primary btn-sm">Filtrar</button>
+    <a href="{{ url_for('clients') }}" class="btn btn-ghost btn-sm">Limpar</a>
   </form>
 </div>
-
-<div class="card">
+<div class="card" style="padding:0">
   {% if clients %}
-  <div class="table-wrap">
-    <table>
-      <thead>
-        <tr>
-          <th>Cliente</th>
-          <th>Plano</th>
-          <th>Valor</th>
-          <th>Vencimento</th>
-          <th>Pagamento</th>
-          <th>Status</th>
-          <th>Ações</th>
-        </tr>
-      </thead>
-      <tbody>
-        {% for c in clients %}
-        <tr>
-          <td>
-            <div style="display:flex;align-items:center;gap:10px">
-              <div class="client-avatar">{{ c.name[0].upper() }}</div>
-              <div>
-                <div style="font-weight:700">{{ c.name }}</div>
-                <div style="font-size:.75rem;color:var(--gr)">{{ c.whatsapp or c.instagram or '—' }}</div>
-              </div>
-            </div>
-          </td>
-          <td>
-            <div style="font-weight:600;font-size:.85rem">{{ c.plan or '—' }}</div>
-            <div style="font-size:.72rem;color:var(--gr)">{{ c.plan_type or '' }}</div>
-          </td>
-          <td style="font-weight:700;color:var(--n)">R$ {{ "%.0f"|format(c.value or 0) }}</td>
-          <td>Dia {{ c.payment_day }}</td>
-          <td>
-            <span class="badge badge-{% if c.payment_method=='pix' %}green{% else %}blue{% endif %}">
-              {{ 'PIX' if c.payment_method=='pix' else 'Crédito' }}
-            </span>
-          </td>
-          <td>
-            <span class="badge badge-{% if c.status=='active' %}green{% elif c.status=='cancelled' %}red{% else %}yellow{% endif %}">
-              {{ 'Ativo' if c.status=='active' else ('Cancelado' if c.status=='cancelled' else 'Pausado') }}
-            </span>
-          </td>
-          <td>
-            <div style="display:flex;gap:6px">
-              <a href="{{ url_for('client_detail', cid=c.id) }}" class="btn btn-ghost btn-sm">Ver</a>
-              <a href="{{ url_for('edit_client', cid=c.id) }}" class="btn btn-ghost btn-sm">✏️</a>
-            </div>
-          </td>
-        </tr>
-        {% endfor %}
-      </tbody>
-    </table>
-  </div>
-  {% else %}
-  <div class="empty">
-    <div class="empty-icon">👥</div>
-    <p>Nenhum cliente encontrado.<br/>
-    <a href="{{ url_for('new_client') }}" class="btn btn-primary" style="margin-top:12px;display:inline-flex">+ Cadastrar primeiro cliente</a></p>
-  </div>
-  {% endif %}
-</div>
-{% endblock %}
+  <div class="table-wrap"><table>
+    <thead><tr><th>Cliente</th><th>Serviço</th><th>Plano</th><th>Valor</th><th>Venc.</th><th>Status</th><th>Ações</th></tr></thead>
+    <tbody>{% for c in clients %}
+    <tr>
+      <td><div style="display:flex;align-items:center;gap:10px"><div class="avatar">{{ c.name[0].upper() }}</div><div><div style="font-weight:700">{{ c.name }}</div><div style="font-size:.72rem;color:var(--gr)">{{ c.instagram or '—' }}</div></div></div></td>
+      <td><span class="badge {% if c.plan_type=='social' %}badge-blue{% elif c.plan_type=='trafego' %}badge-orange{% elif c.plan_type=='site' %}badge-purple{% else %}badge-gray{% endif %}">{{ {'social':'📱 Social','trafego':'📣 Tráfego','site':'🌐 Site'}.get(c.plan_type, c.plan_type or '—') }}</span></td>
+      <td style="font-size:.84rem">{{ c.plan or '—' }}</td>
+      <td style="font-weight:700;color:var(--n)">R$ {{ "%.0f"|format(c.value or 0) }}</td>
+      <td>Dia {{ c.payment_day }}</td>
+      <td><span class="badge badge-{% if c.status=='active' %}green{% elif c.status=='cancelled' %}red{% else %}yellow{% endif %}">{{ 'Ativo' if c.status=='active' else ('Cancelado' if c.status=='cancelled' else 'Pausado') }}</span></td>
+      <td><div style="display:flex;gap:5px;flex-wrap:wrap">
+        <a href="{{ url_for('client_detail', cid=c.id) }}" class="btn btn-primary btn-sm">Ver</a>
+        {% if c.plan_type=='social' %}<a href="{{ url_for('editorial_calendar', cid=c.id) }}" class="btn btn-ghost btn-sm" title="Calendário">📅</a>{% endif %}
+        {% if c.plan_type=='trafego' %}<a href="{{ url_for('traffic_weeks', cid=c.id) }}" class="btn btn-ghost btn-sm" title="Semanas">📣</a>{% endif %}
+        <a href="{{ url_for('media_library', cid=c.id) }}" class="btn btn-ghost btn-sm" title="Mídia">🖼️</a>
+      </div></td>
+    </tr>{% endfor %}
+    </tbody>
+  </table></div>
+  {% else %}<div class="empty"><span class="empty-ico">👥</span><p>Nenhum cliente.<br/><a href="{{ url_for('new_client') }}" class="btn btn-primary" style="margin-top:12px;display:inline-flex">+ Cadastrar</a></p></div>{% endif %}
+</div>{% endblock %}
